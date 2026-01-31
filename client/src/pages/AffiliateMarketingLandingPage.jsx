@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import ScheduleModal from "@/components/common/ScheduleModal";
 import Profile from "../assets/Profile.jpg";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 /* =======================
    MAIN PAGE
 ======================= */
@@ -446,12 +446,12 @@ const AffiliateMarketingLandingPage = () => {
           </p>
 
           <div className="flex gap-8 text-[10px] font-black uppercase tracking-widest text-slate-500">
-            <Link to={'/privacy-policy'} className="hover:text-blue-600 transition">
+            <NavLink to={'/privacy-policy'} className="hover:text-blue-600 transition">
               Privacy
-            </Link>
-            <Link to={'/term-of-service'} className="hover:text-blue-600 transition">
+            </NavLink>
+            <NavLink to={'/term-of-service'} className="hover:text-blue-600 transition">
               Terms
-            </Link>
+            </NavLink>
           </div>
         </div>
       </footer>

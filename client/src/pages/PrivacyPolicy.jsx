@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck, Lock, EyeOff, FileText } from "lucide-react";
 
 const PrivacyPolicy = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-700">
       <div className="max-w-4xl mx-auto px-6 py-24 md:py-32">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-8"
@@ -15,7 +18,7 @@ const PrivacyPolicy = () => {
             <ShieldCheck size={14} />
             Data Protection
           </div>
-          
+
           <h1 className="text-5xl md:text-6xl font-black tracking-tighter uppercase text-slate-900">
             Privacy <span className="text-blue-600">Policy.</span>
           </h1>
