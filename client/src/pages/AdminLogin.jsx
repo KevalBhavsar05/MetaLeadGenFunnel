@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
+
 function AdminLogin() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -15,14 +16,20 @@ function AdminLogin() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        login.mutate({ username, password },
+        login.mutate({ username: username.trim(), password: password.trim() },
             {
-                onSuccess: async (data) => {
-                    await queryClient.invalidateQueries({ queryKey: ['me'] });
-                    if (data?.success === true) {
-                        toast.success("Login successful!");
-                        navigate("/admin/dashboard");
+                onSuccess: async (response) => {
+                    const res = response;
+
+                    if (!res?.success) {
+                        toast.error(res?.message || "Login failed. Please try again.");
+                        setUsername("");
+                        setPassword("");
+                        return;
                     }
+                    await queryClient.invalidateQueries({ queryKey: ['me'] });
+                    toast.success("Login successful!");
+                    navigate("/admin/dashboard");
                 },
                 onError: (error) => {
                     toast.error(error.response?.data?.message || "Login failed. Please try again.");
