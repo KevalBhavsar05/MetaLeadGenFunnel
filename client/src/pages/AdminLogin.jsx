@@ -27,7 +27,8 @@ function AdminLogin() {
                         setPassword("");
                         return;
                     }
-                    await queryClient.invalidateQueries({ queryKey: ['me'] });
+                    await queryClient.refetchQueries({ queryKey: ['me'] });
+
                     toast.success("Login successful!");
                     navigate("/admin/dashboard");
                 },
@@ -96,8 +97,9 @@ function AdminLogin() {
                         <button
                             type="submit"
                             className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
+                            disabled={login.isPending}
                         >
-                            Sign In
+                            {login.isPending ? "Signing In..." : "Sign In"}
                             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                         </button>
                     </form>
