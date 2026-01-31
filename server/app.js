@@ -12,8 +12,8 @@ import adminAuthRoutes from "./src/routes/adminAuth.routes.js";
 const app = express();
 
 const allowedOrigins = [
-  "http://localhost:5173",
-  // process.env.FRONTEND_LOCAL_URL,
+  // "http://localhost:5173",
+  process.env.FRONTEND_URL,
   // process.env.FRONTEND_PROD_URL,
 ];
 
@@ -41,5 +41,5 @@ app.use("/auth", googleAuthRoutes);
 app.use("/api/adminAuth", adminAuthRoutes);
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
