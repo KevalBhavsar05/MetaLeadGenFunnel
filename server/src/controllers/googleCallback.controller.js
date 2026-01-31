@@ -29,7 +29,7 @@ export const googleCallback = async (req, res) => {
       { upsert: true, new: true },
     );
 
-    res.redirect(process.env.FRONTEND_URL + "/admin-dashboard/?google=success");
+    res.redirect(process.env.FRONTEND_URL + "/admin/dashboard/?google=success");
   } catch (error) {
     console.error("Google callback error:", error);
     res.status(500).send("Google authentication failed");
