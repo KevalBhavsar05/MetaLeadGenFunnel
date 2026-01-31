@@ -9,7 +9,7 @@ function ProtectedRoute() {
         return <div>Loading...</div>;
     }
 
-    if (isAuthError || !user || user?.role !== "admin") return <Navigate to="/" replace />;
+    if (isAuthError || !user) return <Navigate to="/" replace />;
 
     return <Outlet />
 }
