@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import { createGoogleMeet } from "../services/googleMeet.service.js";
 import transporter from "../../config/nodemailer.js";
 import { meetingReminderMailBody } from "../utils/mailBody.js";
+import axios from "axios";
 dotenv.config();
 
 export const createMeetingWithZoom = async (req, res) => {
@@ -113,17 +114,15 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
       meetingStartLink: startLink,
     });
 
-    const mail = await transporter.sendMail({
-      from: `"Meta LeadGen Funnel" <${process.env.SMTP_USER}>`,
+    const mailBody = meetingReminderMailBody(name, date, slotTime, meetLink);
+
+    const sendMail = await axios.post(`${process.env.MAILER_SERVICE_URL}`, {
       to: email,
-      subject: "Meeting Scheduled Successfully",
-      html: meetingReminderMailBody(name, date, slotTime, meetLink),
+      subject: "Meeting Scheduled - Reminder",
+      html: mailBody,
     });
 
-    res.status(201).json({
-      success: true,
-      meeting,
-    });
+    return res.status(201).json({ success: true, meeting });
   } catch (error) {
     console.error("Schedule meeting error:", error);
     return res.status(500).json({
