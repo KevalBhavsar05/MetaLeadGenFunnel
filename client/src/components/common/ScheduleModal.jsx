@@ -58,7 +58,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
     for (let i = 0; i < 30; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
-      if (d.getDay() !== 0 && d.getDay() !== 6) dates.push(d);
+      dates.push(d);
     }
     return dates;
   }, []);
