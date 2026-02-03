@@ -117,18 +117,17 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
     const mailBody = meetingReminderMailBody(name, date, slotTime, meetLink);
 
     const sendMail = await axios.post(`${process.env.MAILER_SERVICE_URL}`, {
-      to: email,
+      email,
       subject: "Meeting Scheduled - Reminder",
-      html: mailBody,
+      mailBody,
     });
-
     return res.status(201).json({ success: true, meeting });
   } catch (error) {
     console.error("Schedule meeting error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
-      error,
+      error: error.message,
     });
   }
 };

@@ -11,6 +11,7 @@ import {
   Award,
   ExternalLink,
   Sparkles,
+  User,
 } from "lucide-react";
 import ScheduleModal from "@/components/common/ScheduleModal";
 import Profile from "../assets/Profile.jpg";
@@ -76,12 +77,12 @@ const AffiliateMarketingLandingPage = () => {
         onClose={() => setIsModalOpen(false)}
       />
       {/* 1. HERO SECTION & VIDEO */}
-      <section className="relative pt-20 md:pt-30 pb-32 px-6">
+      <section className="relative pt-20 md:pt-20 pb-32 px-6">
         {/* Soft Blue Radial Background */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(37,99,235,0.05)_0%,_transparent_50%)] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 ">
             {/* LEFT CONTENT */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -95,17 +96,18 @@ const AffiliateMarketingLandingPage = () => {
         tracking-tighter uppercase text-slate-900
       "
               >
-                Learn Skills. <br />
+                Learn Skills.
+                <br />
                 <span className="text-blue-600">Build Direction.</span> <br />
-                Execute <br />
-                <span className="text-slate-300">With Clarity.</span>
+                {/* Execute <br />
+                <span className="text-slate-300">With Clarity.</span> */}
               </h1>
-
+              {/* 
               <p className="max-w-xl mx-auto lg:mx-0 text-base sm:text-lg text-slate-600 leading-relaxed">
                 A government-registered EdTech ecosystem focused on practical
                 skill-building, execution clarity, and long-term earning through
                 structured guidance.
-              </p>
+              </p> */}
 
               <Button
                 onClick={() => setIsModalOpen(true)}
@@ -128,34 +130,24 @@ const AffiliateMarketingLandingPage = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="relative group cursor-pointer max-w-xl mx-auto lg:max-w-none"
+              className="relative group cursor-pointer w-full"
             >
               <div className="absolute -inset-4 bg-blue-500/10 rounded-[2.5rem] blur-2xl group-hover:bg-blue-500/15 transition" />
               <div className="relative aspect-[4/3] rounded-[2.5rem] bg-slate-100 border border-slate-200 p-3 shadow-2xl">
                 <div className="w-full h-full rounded-[2rem] bg-white overflow-hidden flex flex-col border border-slate-200 shadow-inner">
-                  {/* HEADER */}
-                  <div className="p-4 sm:p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                    <div className="flex gap-2">
-                      <div className="w-3 h-3 rounded-full bg-slate-200" />
-                      <div className="w-3 h-3 rounded-full bg-slate-200" />
-                    </div>
-                    <div className="text-[9px] sm:text-[10px] font-bold text-blue-600 uppercase tracking-widest">
-                      System Preview
-                    </div>
-                  </div>
-
                   {/* BODY */}
-                  <div className="p-6 sm:p-8 flex-1 flex flex-col justify-center items-center text-center space-y-3 sm:space-y-4">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/40">
-                      <Play fill="white" className="ml-1 text-white" />
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="w-full h-full rounded-[1.5rem] overflow-hidden border border-slate-100 bg-black">
+                      <iframe
+                        className="w-full h-full"
+                        src="https://www.youtube.com/embed/fzUBVFjsod8?si=lWVJRC98SSQdzE2I"
+                        title="YouTube video player"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allowFullScreen
+                      />
                     </div>
-
-                    <p className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight">
-                      WATCH LEARNING SYSTEM WALKTHROUGH
-                    </p>
-                    <p className="text-[10px] sm:text-xs text-slate-400">
-                      Program Overview • Real Use-Cases
-                    </p>
                   </div>
                 </div>
               </div>
@@ -395,32 +387,36 @@ const AffiliateMarketingLandingPage = () => {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                name: "Julian V.",
-                res: "The structured roadmap helped me understand execution and skill application clearly.",
+                name: "Pragya Singh",
+                res: "IDigitalPreneur is an excellent e-learning platform that delivers great skill development and growth. Over the past 5 months, I have learned valuable skills like public speaking, Instagram growth, and digital marketing. The training is well-structured and the mentorship is incredibly supportive. I highly recommend it to anyone seeking financial independence and skill enhancement",
               },
               {
-                name: "Elena M.",
-                res: "This platform focuses on systems, discipline, and real implementation — not hype.",
+                name: "Riya Sandhu",
+                res: "Joining iDigitalPreneur has been truly transformative for me.The structured training and constant mentorship helped me build confidence and improve my communication skills.I gained valuable professional skills along with personal growth. Grateful to be part of such a supportive and inspiring community.",
               },
               {
-                name: "Marcus T.",
-                res: "For the first time, I received clarity on how skills translate into real opportunities.",
+                name: "Dhananjay Chaurasiya",
+                res: "My experience with iDigitalPreneur has been extremely positive. It’s a transparent and 100% legit platform that truly delivers on its promises. The beginner-friendly, well-structured training and strong support system helped me learn digital marketing, ads, public speaking, and more. I highly recommend it to anyone serious about building a successful digital career.",
               },
             ].map((t, i) => (
               <Card
                 key={i}
-                className="p-10 bg-white border-slate-200 rounded-[3rem] space-y-6 hover:shadow-2xl hover:shadow-blue-500/10 transition duration-300"
+                className="p-10 flex flex-col justify-between bg-white border-slate-200 rounded-[3rem] space-y-6 hover:shadow-2xl hover:shadow-blue-500/10 transition duration-300"
               >
-                <div className="flex gap-1 text-blue-600">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} fill="currentColor" size={12} />
-                  ))}
+                <div className="flex flex-col gap-7 text-blue-600">
+                  <div className="flex gap-2 ml-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} fill="currentColor" size={12} />
+                    ))}
+                  </div>
+                  <p className="text-lg text-slate-600 font-medium leading-relaxed italic">
+                    "{t.res}"
+                  </p>
                 </div>
-                <p className="text-lg text-slate-600 font-medium leading-relaxed italic">
-                  "{t.res}"
-                </p>
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-100" />
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex justify-center items-center">
+                    <User size={25} className="text-slate-400" />
+                  </div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">
                     {t.name}
                   </p>
