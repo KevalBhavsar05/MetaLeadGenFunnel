@@ -46,7 +46,7 @@ const StartMeetingModal = ({ isOpen, onClose, meetingData }) => {
                             </div>
                             <div>
                                 <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Launch Session</h3>
-                                <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">MetaFlow</p>
+                                <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">TalkWithKartik</p>
                             </div>
                         </div>
                         <button onClick={onClose} className="p-2 cursor-pointer hover:bg-slate-200 rounded-full transition-colors text-slate-400">
@@ -65,6 +65,10 @@ const StartMeetingModal = ({ isOpen, onClose, meetingData }) => {
                                 <div className="flex items-center gap-2 text-slate-500 text-xs">
                                     <Mail size={12} />
                                     <span>{meetingData?.userId?.email}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-slate-500 text-xs">
+                                    <User size={12} />
+                                    <span>{meetingData?.userId?.phone}</span>
                                 </div>
                             </div>
                         </div>

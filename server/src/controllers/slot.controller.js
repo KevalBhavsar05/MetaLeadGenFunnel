@@ -40,8 +40,10 @@ export const seedSlots = async (req, res) => {
 
 export const getSlotsForUser = async (req, res) => {
   try {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
     const bookedMeetings = await Meeting.find({
-      date: { $gte: new Date() },
+      date: { $gte: startOfToday },
       status: { $in: ["pending", "confirmed"] },
     }).select("date slotTime");
     const slots = await SlotConfig.find({ isActive: true });

@@ -29,7 +29,7 @@ const TermsOfService = () => {
                 1. Educational Nature
               </h2>
               <p>
-                MetaFlow is an EdTech ecosystem. All sessions, materials, and
+                TalkWithKartik is an EdTech ecosystem. All sessions, materials, and
                 roadmaps are for **educational purposes only**. We provide the
                 tools and direction; however, the execution and subsequent
                 results are the sole responsibility of the user.
@@ -65,7 +65,7 @@ const TermsOfService = () => {
               </h2>
               <p>
                 All content, including frameworks, videos, and strategy
-                documents, are the intellectual property of MetaFlow.
+                documents, are the intellectual property of TalkWithKartik.
                 Unauthorized reproduction or distribution is strictly
                 prohibited.
               </p>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     useReactTable,
@@ -16,12 +16,15 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { useFetchMeetings } from "@/hooks/useMeeting";
 import StartMeetingModal from "@/components/common/StartMeetingModal";
+import SpinnerLoader from "@/components/common/SpinnerLoader";
 
 const Meeting = () => {
     const { data, isPending, isError, error } = useFetchMeetings();
     const [globalFilter, setGlobalFilter] = useState("");
+    const [dateFilter, setDateFilter] = useState("");
     const [selectedMeeting, setSelectedMeeting] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const dateInputRef = useRef(null);
 
     // Helper functions
     const to12HourFormat = (time24) => {
@@ -30,6 +33,62 @@ const Meeting = () => {
         const ampm = hours >= 12 ? "PM" : "AM";
         hours = hours % 12 || 12;
         return `${hours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+    };
+
+    const toLocalDateStr = (dateValue) => {
+        const dateObj = new Date(dateValue);
+        if (Number.isNaN(dateObj.getTime())) return "";
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const d = String(dateObj.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+    };
+
+    const filteredMeetings = useMemo(() => {
+        const meetings = data?.meetings || [];
+        if (!dateFilter) return meetings;
+        return meetings.filter(
+            (meeting) => toLocalDateStr(meeting.date) === dateFilter
+        );
+    }, [data?.meetings, dateFilter]);
+
+    const escapeCsv = (value) => {
+        const str = String(value ?? "");
+        if (/[",\n]/.test(str)) return `"${str.replace(/"/g, '""')}"`;
+        return str;
+    };
+
+    const exportMeetingsToCsv = () => {
+        const rows = table.getFilteredRowModel().rows;
+        const headers = ["Name", "Email", "Phone", "Date", "Time", "Status"];
+        const lines = [headers.join(",")];
+
+        rows.forEach((row) => {
+            const meeting = row.original;
+            const line = [
+                meeting?.userId?.name ?? "",
+                meeting?.userId?.email ?? "",
+                meeting?.userId?.phone ?? "",
+                toLocalDateStr(meeting?.date),
+                to12HourFormat(meeting?.slotTime),
+                meeting?.status ?? "",
+            ]
+                .map(escapeCsv)
+                .join(",");
+            lines.push(line);
+        });
+
+        const csv = lines.join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        const stamp = toLocalDateStr(new Date()) || "export";
+        link.setAttribute("download", `meetings-${stamp}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
     };
 
     // Column Definitions
@@ -50,6 +109,18 @@ const Meeting = () => {
                         </div>
                     </div>
                 );
+            }
+        },
+        {
+            accessorKey: "userId.phone",
+            header: "Phone Number",
+            cell: ({ row }) => {
+                const user = row.original.userId;
+                return (
+                    <div>
+                        <p className="text-sm font-bold text-slate-900">{user?.phone}</p>
+                    </div>
+                )
             }
         },
         {
@@ -99,7 +170,7 @@ const Meeting = () => {
     ], []);
 
     const table = useReactTable({
-        data: data?.meetings || [],
+        data: filteredMeetings,
         columns,
         state: { globalFilter },
         onGlobalFilterChange: setGlobalFilter,
@@ -108,7 +179,7 @@ const Meeting = () => {
         getPaginationRowModel: getPaginationRowModel(),
     });
 
-    if (isPending) return <div className="p-20 text-center font-bold text-slate-400">LOADING PIPELINE...</div>;
+    if (isPending) return <SpinnerLoader className="h-screen" />;
     if (isError) return <div className="p-20 text-center text-red-500 font-bold uppercase tracking-widest">Error: {error.message}</div>;
 
     return (
@@ -123,21 +194,43 @@ const Meeting = () => {
                         Manage your strategy calls and affiliate intake
                     </p>
                 </div>
-                {/* <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 font-bold shadow-lg shadow-blue-500/20">
-                    <UserPlus size={18} className="mr-2" /> Manual Entry
-                </Button> */}
             </div>
 
             {/* SEARCH */}
             <Card className="p-4 border-slate-200 shadow-sm bg-white/50 backdrop-blur-sm">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <Input
-                        value={globalFilter ?? ""}
-                        onChange={(e) => setGlobalFilter(e.target.value)}
-                        placeholder="Filter by name, email, status or date..."
-                        className="pl-10 bg-white border-slate-200 rounded-xl focus:ring-blue-500/20"
-                    />
+                <div className="flex flex-col md:flex-row md:items-center gap-3">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <Input
+                            value={globalFilter ?? ""}
+                            onChange={(e) => setGlobalFilter(e.target.value)}
+                            placeholder="Filter by name, email, phone..."
+                            className="pl-10 bg-white border-slate-200 w-full rounded-xl focus:ring-blue-500/20"
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => dateInputRef.current?.showPicker?.() || dateInputRef.current?.focus()}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:border-blue-200 transition-colors"
+                    >
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                            Date
+                        </span>
+                        <Input
+                            type="date"
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            ref={dateInputRef}
+                            className="bg-transparent border-0 rounded-lg focus:ring-blue-500/20 p-0 shadow-none h-auto"
+                        />
+                    </button>
+                    <Button
+                        onClick={exportMeetingsToCsv}
+                        disabled={table.getFilteredRowModel().rows.length === 0}
+                        className="bg-slate-900 hover:bg-slate-800 cursor-pointer text-white rounded-xl px-6 font-bold shadow-lg shadow-slate-900/20"
+                    >
+                        Export Excel
+                    </Button>
                 </div>
             </Card>
 

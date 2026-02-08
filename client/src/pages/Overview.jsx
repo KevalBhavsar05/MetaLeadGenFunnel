@@ -11,6 +11,7 @@ import {
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import StartMeetingModal from '@/components/common/StartMeetingModal';
+import SpinnerLoader from '@/components/common/SpinnerLoader';
 
 function Overview() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,12 +54,12 @@ function Overview() {
                         <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight">System <span className="text-blue-600">Overview</span></h1>
                         <p className="text-slate-500 text-sm font-medium uppercase tracking-widest mt-1">Admin Dashboard</p>
                     </div>
-                    <div>
-                        <button className='bg-blue-600 cursor-pointer text-white px-4 py-2 rounded-md flex items-center hover:bg-blue-700 transition-shadow shadow-md shadow-blue-200'
-                            onClick={() => window.location.href = import.meta.env.VITE_BACKEND_URL + '/auth/google'}>
-                            Google Activation <ExternalLink size={16} className="inline-block ml-2" />
-                        </button>
-                    </div>
+                </div>
+                <div className='flex justify-end'>
+                    <button className='bg-blue-600 cursor-pointer text-white px-4 py-2 rounded-md flex items-center hover:bg-blue-700 transition-shadow shadow-md shadow-blue-200'
+                        onClick={() => window.location.href = import.meta.env.VITE_BACKEND_URL + '/auth/google'}>
+                        Google Activation <ExternalLink size={16} className="inline-block ml-2" />
+                    </button>
                 </div>
 
                 {/* STATS GRID */}
@@ -90,9 +91,9 @@ function Overview() {
                             <h4 className="font-black uppercase tracking-tight text-slate-900">Today's Schedule</h4>
                         </div>
                         {isPending ?
-                            (<div className="p-6 flex justify-center items-center">
-                                <span className="text-sm text-slate-400">Loading meetings...</span>
-                            </div>) : isError ?
+                            (
+                                <SpinnerLoader className='w-full h-40' />
+                            ) : isError ?
                                 (
                                     <div className="p-6 flex justify-center items-center">
                                         <span className="text-sm text-red-500">Error: {error.message}</span>

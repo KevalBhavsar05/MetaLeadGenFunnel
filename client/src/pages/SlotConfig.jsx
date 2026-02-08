@@ -78,7 +78,7 @@ const SlotConfig = () => {
                             <LayoutGrid size={18} className="text-white sm:w-[22px]" />
                         </div>
                         <h1 className="text-lg sm:text-2xl font-black uppercase tracking-tighter">
-                            Meta<span className="text-blue-600">Flow</span> Slots
+                            TalkWith<span className="text-blue-600">Kartik</span> Slots
                         </h1>
                     </div>
 

@@ -44,7 +44,7 @@ const MetaFlowDashboard = () => {
             <BarChart3 size={18} className="text-white" />
           </div>
           <span className="text-lg font-black text-slate-900 tracking-tighter uppercase">
-            Meta<span className="text-blue-600">Flow</span>
+            TalkWith<span className="text-blue-600">Kartik</span>
           </span>
         </div>
         <button

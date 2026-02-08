@@ -91,17 +91,16 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
       });
     }
 
-    // 3️⃣ Build datetime (IST)
-    const startTimeISO = `${date}T${slotTime}:00+05:30`;
-    const endTime = new Date(startTimeISO);
-    endTime.setMinutes(endTime.getMinutes() + 30);
+    // 3️⃣ Build datetime (normalize to UTC ISO)
+    const startDateTime = new Date(`${date}T${slotTime}:00+05:30`);
+    const endDateTime = new Date(startDateTime.getTime() + 30 * 60 * 1000);
 
     // 4️⃣ Create Google Meet
     const { meetLink, startLink } = await createGoogleMeet({
       summary: `Consultation`,
       description: "Meeting scheduled",
-      startTime: startTimeISO,
-      endTime: endTime.toISOString(),
+      startTime: startDateTime.toISOString(),
+      endTime: endDateTime.toISOString(),
       attendeeEmail: email,
     });
 
