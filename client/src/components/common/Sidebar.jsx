@@ -8,7 +8,13 @@ import {
   PanelLeftClose,
   PanelLeft,
   X,
+  LogOut,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useLogoutAdmin } from "@/hooks/useAdminAuth";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog";
 
 /* ==========================================================
    COMPONENT: Sidebar
@@ -23,6 +29,10 @@ const Sidebar = ({
   isCollapsed,
   onToggleCollapse,
 }) => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const logout = useLogoutAdmin();
+
   const navItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "meetings", label: "Meetings", icon: Calendar },
@@ -32,6 +42,24 @@ const Sidebar = ({
   const handleNavClick = (tab) => {
     setActiveTab(tab);
     onCloseMobile?.();
+  };
+
+  const handleLogout = () => {
+    logout.mutate(undefined, {
+      onSuccess: (response) => {
+        if (response?.success) {
+          queryClient.setQueryData(["me"], null);
+          toast.success(response?.message || "Logout successful");
+          navigate("/admin-login", { replace: true });
+        } else {
+          toast.error(response?.message || "Logout failed");
+        }
+      },
+      onError: (error) => {
+        console.error("Logout error:", error);
+        toast.error(error?.response?.data?.message || "Something went wrong!");
+      },
+    });
   };
 
   return (
@@ -83,7 +111,7 @@ const Sidebar = ({
                   transition={{ duration: 0.15 }}
                   className="text-xl font-black text-slate-900 tracking-tighter uppercase whitespace-nowrap overflow-hidden"
                 >
-                  Meta<span className="text-blue-600">Flow</span>
+                  TalkWith<span className="text-blue-600">Kartik</span>
                 </motion.span>
               )}
             </AnimatePresence>
@@ -157,6 +185,27 @@ const Sidebar = ({
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
+
+          <div className="mt-3">
+            <ConfirmationDialog
+              trigger={
+                <button
+                  type="button"
+                  className={`w-full flex items-center cursor-pointer justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all border border-slate-200 bg-white text-rose-600 hover:bg-rose-50 ${
+                    isCollapsed && !isMobileOpen ? "px-2" : ""
+                  }`}
+                >
+                  <LogOut size={16} />
+                  {(!isCollapsed || isMobileOpen) && <span>Logout</span>}
+                </button>
+              }
+              title="Logout?"
+              description="Are you sure you want to log out?"
+              confirmText="Logout"
+              cancelText="Cancel"
+              onConfirm={handleLogout}
+            />
           </div>
         </div>
       </aside>

@@ -12,6 +12,7 @@ import { useFetchSlots } from "@/hooks/useSlots";
 import { useBookMeeting } from "@/hooks/useMeeting";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog";
 
 /** Parse slot time string to minutes since midnight (handles "10:00", "10:00 AM", "1:00 PM") */
 function parseSlotToMinutes(timeStr) {
@@ -48,7 +49,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [userData, setUserData] = useState({ name: "", email: "", phone: "" });
-  const { data } = useFetchSlots();
+  const { data, isLoading } = useFetchSlots();
   const meeting = useBookMeeting();
   const queryClient = useQueryClient();
 
@@ -83,14 +84,14 @@ const ScheduleModal = ({ isOpen, onClose }) => {
       const bookings = data.bookedMeetings ?? [];
       return dayConfig.slots.filter((slot) => {
         const isBooked = bookings.some((b) => {
-          const bDate =
-            typeof b.date === "string"
-              ? b.date.split("T")[0]
-              : b.date?.toISOString?.()?.split("T")[0];
-          return (
-            bDate === dateStr &&
-            String(b.slotTime).trim() === String(slot.time).trim()
-          );
+          const rawDate =
+            typeof b?.date === "string"
+              ? b.date
+              : b?.date?.$date || b?.date?.toISOString?.();
+          const bDate = rawDate ? toLocalDateStr(new Date(rawDate)) : null;
+          const bTime = parseSlotToMinutes(String(b?.slotTime ?? "").trim());
+          const slotTime = parseSlotToMinutes(String(slot.time).trim());
+          return bDate === dateStr && bTime === slotTime;
         });
         return !isBooked;
       });
@@ -104,6 +105,24 @@ const ScheduleModal = ({ isOpen, onClose }) => {
   }, [selectedDate, getSlotsForDate]);
 
   const todayStr = useMemo(() => toLocalDateStr(new Date()), [toLocalDateStr]);
+
+  const hasAvailableSlots = useCallback(
+    (dateObj) => {
+      const slots = getSlotsForDate(dateObj);
+      if (slots.length === 0) return false;
+      const dateStr = toLocalDateStr(dateObj);
+      if (dateStr !== todayStr) return true;
+      const now = new Date();
+      const currentMins = now.getHours() * 60 + now.getMinutes();
+      return slots.some((slot) => parseSlotToMinutes(slot.time) > currentMins);
+    },
+    [getSlotsForDate, toLocalDateStr, todayStr]
+  );
+
+  const availableDateOptions = useMemo(
+    () => availableDates.filter(hasAvailableSlots).slice(0, 3),
+    [availableDates, hasAvailableSlots]
+  );
 
   const slotsAvailableForSelection = useMemo(() => {
     if (!selectedDate) return [];
@@ -167,7 +186,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
             <button
               type="button"
               onClick={resetAndClose}
-              className="absolute top-4 right-4 md:top-8 md:right-8 z-[80] p-3 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
+              className="absolute top-4 right-4 md:top-6 md:right-6 z-[80] p-3 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
               aria-label="Close"
             >
               <X size={20} className="text-slate-600" />
@@ -279,49 +298,70 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                 >
                   {/* Date Grid */}
                   <div className="flex-1">
+                    <Button
+                      type="button"
+                      onClick={() => setStep(1)}
+                      variant="link"
+                      className="mt-1 mb-4 p-0 h-auto cursor-pointer text-blue-500 hover:text-blue-600 underline underline-offset-4"
+                    >
+                      Back
+                    </Button>
                     <h3 className="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest">
-                      Select a Date
+                      Select a Date (Next 3 Available)
                     </h3>
-                    <div className="grid grid-cols-5 sm:grid-cols-5 gap-2 md:gap-3">
-                      {availableDates.map((date) => {
-                        const dateStr = toLocalDateStr(date);
-                        const slots = getSlotsForDate(date);
-                        const isSelected = selectedDate === dateStr;
-                        const hasSlots = slots.length > 0;
+                    {isLoading ? (
+                      <div className="h-24 md:h-32 border-2 border-dashed border-slate-100 rounded-2xl flex items-center justify-center text-center">
+                        <p className="text-slate-300 text-xs italic">
+                          Loading available dates...
+                        </p>
+                      </div>
+                    ) : availableDateOptions.length > 0 ? (
+                      <div className="grid grid-cols-5 sm:grid-cols-5 gap-2 md:gap-3">
+                        {availableDateOptions.map((date) => {
+                          const dateStr = toLocalDateStr(date);
+                          const isSelected = selectedDate === dateStr;
+                          const hasSlots = hasAvailableSlots(date);
 
-                        return (
-                          <button
-                            type="button"
-                            key={dateStr}
-                            disabled={!hasSlots}
-                            onClick={() => {
-                              setSelectedDate(dateStr);
-                              setSelectedTime(null);
-                            }}
-                            className={`flex flex-col items-center justify-center py-2 px-1 md:p-3 rounded-xl md:rounded-2xl transition-all border-2
+                          return (
+                            <button
+                              type="button"
+                              key={dateStr}
+                              disabled={!hasSlots}
+                              onClick={() => {
+                                setSelectedDate(dateStr);
+                                setSelectedTime(null);
+                              }}
+                              className={`flex flex-col items-center justify-center py-2 px-1 md:p-3 rounded-xl md:rounded-2xl transition-all border-2
                                 ${isSelected
-                                ? "bg-blue-600 border-blue-600 text-white shadow-lg"
-                                : hasSlots
-                                  ? "bg-white border-slate-100 text-slate-700 hover:border-blue-200"
-                                  : "bg-slate-50 border-transparent text-slate-300 opacity-50 cursor-not-allowed"
-                              }
+                                  ? "bg-blue-600 border-blue-600 text-white shadow-lg"
+                                  : hasSlots
+                                    ? "bg-white border-slate-100 text-slate-700 hover:border-blue-200"
+                                    : "bg-slate-50 border-transparent text-slate-300 opacity-50 cursor-not-allowed"
+                                }
                               `}
-                          >
-                            <span
-                              className={`text-[9px] md:text-[10px] font-bold uppercase ${isSelected ? "text-blue-100" : "opacity-60"
-                                }`}
                             >
-                              {date.toLocaleString("default", {
-                                weekday: "short",
-                              })}
-                            </span>
-                            <span className="text-base md:text-lg font-black">
-                              {date.getDate()}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                              <span
+                                className={`text-[9px] md:text-[10px] font-bold uppercase ${isSelected ? "text-blue-100" : "opacity-60"
+                                  }`}
+                              >
+                                {date.toLocaleString("default", {
+                                  weekday: "short",
+                                })}
+                              </span>
+                              <span className="text-base md:text-lg font-black">
+                                {date.getDate()}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="h-24 md:h-32 border-2 border-dashed border-slate-100 rounded-2xl flex items-center justify-center text-center">
+                        <p className="text-slate-300 text-xs italic">
+                          No available slots in the next 30 days
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Slot list */}
@@ -355,13 +395,61 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                           </p>
                         )}
 
-                        <Button
-                          disabled={!selectedTime}
-                          onClick={handleCreateMeeting}
-                          className="w-full h-12 bg-slate-800 text-white rounded-xl mt-4"
-                        >
-                          Confirm Booking
-                        </Button>
+
+                        <ConfirmationDialog
+                          trigger={
+                            <Button
+                              disabled={!selectedTime}
+                              className="w-full h-12 bg-slate-800 text-white rounded-xl mt-4"
+                            >
+                              Confirm Booking
+                            </Button>
+                          }
+                          title="Confirm Booking"
+                          description="Please confirm the details before booking."
+                          content={
+                            <div className="space-y-3">
+                              <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                  User Details
+                                </p>
+                                <div className="mt-2 space-y-1">
+                                  <p className="text-sm font-semibold text-slate-800">
+                                    {userData.name || "-"}
+                                  </p>
+                                  <p className="text-xs text-slate-500">
+                                    {userData.email || "-"}
+                                  </p>
+                                  <p className="text-xs text-slate-500">
+                                    {userData.phone || "-"}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                    Date
+                                  </p>
+                                  <p className="mt-2 text-sm font-semibold text-slate-800">
+                                    {selectedDate || "-"}
+                                  </p>
+                                </div>
+                                <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                    Time
+                                  </p>
+                                  <p className="mt-2 text-sm font-semibold text-slate-800">
+                                    {formatSlotForDisplay(selectedTime)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          }
+                          confirmText="Confirm"
+                          cancelText="Edit Details"
+                          onConfirm={handleCreateMeeting}
+                        />
                       </div>
                     ) : (
                       <div className="h-24 md:h-32 border-2 border-dashed border-slate-100 rounded-2xl flex items-center justify-center text-center">
@@ -398,13 +486,16 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                           There was an issue booking your meeting. Please try
                           again.
                         </p>
-                        <Button
-                          onClick={resetAndClose}
-                          variant="outline"
-                          className="px-10 h-12 bg-slate-800 hover:bg-slate-900 cursor-pointer text-white rounded-xl"
-                        >
-                          Close
-                        </Button>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                          <Button
+                            type="button"
+                            onClick={() => setStep(1)}
+                            variant="outline"
+                            className="px-8 h-12 rounded-xl border-slate-200 text-slate-600"
+                          >
+                            Back
+                          </Button>
+                        </div>
                       </div>
                     )}
                     {!meeting.isPending && !meeting.isError && (
@@ -418,13 +509,16 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                         <p className="text-slate-500">
                           {selectedDate} at {formatSlotForDisplay(selectedTime)}
                         </p>
-                        <Button
-                          onClick={resetAndClose}
-                          variant="outline"
-                          className="px-10 h-12 bg-slate-800 hover:bg-slate-900 cursor-pointer text-white rounded-xl"
-                        >
-                          Close
-                        </Button>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                          <Button
+                            type="button"
+                            onClick={() => setStep(1)}
+                            variant="outline"
+                            className="px-8 h-12 rounded-xl border-slate-200 text-slate-600"
+                          >
+                            Back
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>

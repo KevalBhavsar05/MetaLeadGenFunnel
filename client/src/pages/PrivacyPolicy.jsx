@@ -31,7 +31,7 @@ const PrivacyPolicy = () => {
             <section className="space-y-4">
               <h2 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">1. Information Collection</h2>
               <p>
-                At MetaFlow, we collect information necessary to provide mentorship and educational services. This includes personal identifiers (name, email) and professional goals shared during strategy sessions.
+                At TalkWithKartik, we collect information necessary to provide mentorship and educational services. This includes personal identifiers (name, email) and professional goals shared during strategy sessions.
               </p>
             </section>
 
@@ -55,7 +55,7 @@ const PrivacyPolicy = () => {
             <section className="space-y-4">
               <h2 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">4. Third-Party Sharing</h2>
               <p>
-                MetaFlow does not sell or lease user data to third-party marketers. Data is only shared with essential service providers (like payment processors or scheduling tools) required to fulfill our service to you.
+                TalkWithKartik does not sell or lease user data to third-party marketers. Data is only shared with essential service providers (like payment processors or scheduling tools) required to fulfill our service to you.
               </p>
             </section>
           </div>

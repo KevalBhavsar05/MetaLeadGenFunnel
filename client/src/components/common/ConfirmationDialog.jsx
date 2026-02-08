@@ -16,6 +16,7 @@ function ConfirmationDialog({
     trigger, // React node
     title = "Are you sure?",
     description = "This action cannot be undone.",
+    content = null,
     confirmText = "Confirm",
     cancelText = "Cancel",
     onConfirm, // This is your async handleSubmit function
@@ -43,28 +44,35 @@ function ConfirmationDialog({
                 {trigger}
             </AlertDialogTrigger>
 
-            <AlertDialogContent className="max-w-[90vw] sm:max-w-md">
-                <AlertDialogHeader>
-                    <AlertDialogTitle className="text-base sm:text-lg">
-                        <AlertCircle className="inline mr-2 mb-1 text-red-600" size={20} />
-                        {title}</AlertDialogTitle>
-                    <AlertDialogDescription className="text-sm sm:text-base">
+            <AlertDialogContent className="max-w-[92vw] sm:max-w-md rounded-[2rem] sm:rounded-[2.5rem] border border-slate-200 bg-white shadow-2xl p-0 overflow-hidden">
+                <AlertDialogHeader className="p-6 sm:p-8 space-y-2">
+                    <AlertDialogTitle className="text-lg sm:text-xl font-black uppercase tracking-tight text-slate-900">
+                        <AlertCircle className="inline mr-2 mb-1 text-blue-600" size={20} />
+                        {title}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-sm sm:text-base text-slate-500">
                         {description}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
+                {content && (
+                    <div className="px-6 sm:px-8 pb-2">
+                        {content}
+                    </div>
+                )}
+
                 {/* ⭐ Fixed Footer: Buttons in one row on mobile with proper spacing */}
-                <AlertDialogFooter className="flex-row gap-2 sm:gap-3">
-                    <AlertDialogCancel className="flex-1 m-0 text-sm sm:text-base">
+                <AlertDialogFooter className="p-6 sm:p-8 pt-0 flex-row gap-2 sm:gap-3">
+                    <AlertDialogCancel className="flex-1 m-0 rounded-xl border-slate-200 text-sm sm:text-base">
                         {cancelText}
                     </AlertDialogCancel>
 
-                    {/* ⭐ 5. Pass the new handler to onClick. 
+                    {/* ⭐ 5. Pass the new handler to onClick.
                We prevent the default submit/close, run the async function, then close.
           */}
                     <AlertDialogAction
                         onClick={handleConfirm}
-                        className="flex-1 m-0 text-sm sm:text-base"
+                        className="flex-1 m-0 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base"
                     >
                         {confirmText}
                     </AlertDialogAction>

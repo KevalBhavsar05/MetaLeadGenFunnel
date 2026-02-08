@@ -48,7 +48,7 @@ const AffiliateMarketingLandingPage = () => {
               <TrendingUp size={18} className="text-white" />
             </div>
             <span className="text-xl font-bold text-slate-900 tracking-tight">
-              Meta<span className="text-blue-600">Flow</span>
+              TalkWith<span className="text-blue-600">Kartik</span>
             </span>
           </div>
           <div className="hidden md:flex gap-8 text-sm font-semibold text-slate-500 uppercase tracking-widest">
@@ -64,10 +64,10 @@ const AffiliateMarketingLandingPage = () => {
           </div>
           <Button
             onClick={() => setIsModalOpen(true)}
-            className="rounded-full bg-blue-600 text-white cursor-pointer hover:bg-blue-700 px-6 font-bold"
+            className="rounded-full hidden sm:flex bg-blue-600 text-white cursor-pointer hover:bg-blue-700 px-6 font-bold"
           >
             Book Session
-            <ExternalLink size={16} className="ml-2" />
+            <ExternalLink size={16} />
           </Button>
         </div>
       </motion.nav>
@@ -77,7 +77,7 @@ const AffiliateMarketingLandingPage = () => {
         onClose={() => setIsModalOpen(false)}
       />
       {/* 1. HERO SECTION & VIDEO */}
-      <section className="relative pt-20 md:pt-20 pb-32 px-6">
+      <section className="relative pt-20 md:pt-20 pb-10 sm:pb-15 px-6">
         {/* Soft Blue Radial Background */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(37,99,235,0.05)_0%,_transparent_50%)] pointer-events-none" />
 
@@ -158,7 +158,7 @@ const AffiliateMarketingLandingPage = () => {
       {/* 2. SCHEDULE & BENEFITS */}
       <section
         id="schedule"
-        className="py-20 sm:py-24 lg:py-32 px-4 sm:px-6 bg-slate-50"
+        className="py-10 sm:py-15 px-4 sm:px-6 bg-slate-50"
       >
         <div className="max-w-7xl mx-auto">
           <div
@@ -273,7 +273,7 @@ const AffiliateMarketingLandingPage = () => {
         </div>
       </section>
       {/* 3. ABOUT MENTOR & COMPANY */}
-      <section id="about" className="py-28 px-8 bg-white">
+      <section id="about" className="py-10 sm:py-15 px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-5 gap-16 items-center">
             {/* LEFT : PROFILE IMAGE */}
@@ -382,7 +382,7 @@ const AffiliateMarketingLandingPage = () => {
         </div>
       </section>
       {/* 4. TESTIMONIALS */}
-      <section id="testimonials" className="py-32 px-6 bg-slate-50/50">
+      <section id="testimonials" className="py-10 sm:py-15 px-6 bg-slate-50/50">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
             {[
@@ -432,7 +432,7 @@ const AffiliateMarketingLandingPage = () => {
           <div className="flex items-center gap-2">
             <TrendingUp size={20} className="text-blue-600" />
             <span className="text-xl font-bold text-slate-900 tracking-tighter">
-              Meta<span className="text-blue-600">Flow</span>
+              TalkWith<span className="text-blue-600">Kartik</span>
             </span>
           </div>
           <p className="text-[10px] text-slate-400 uppercase tracking-widest text-center max-w-xl">

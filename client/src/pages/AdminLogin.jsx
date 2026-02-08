@@ -53,7 +53,7 @@ function AdminLogin() {
                     <div className="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
                         <Lock className="text-white" size={24} />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">MetaFlow Admin</h1>
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">TalkWithKartik Admin</h1>
                     <p className="text-slate-500 mt-2">Enter your credentials to access the portal</p>
                 </div>
 
@@ -106,7 +106,7 @@ function AdminLogin() {
                 </div>
 
                 <p className="text-center mt-8 text-sm text-slate-400">
-                    &copy; 2026 MetaFlow Analytics. All rights reserved.
+                    &copy; 2026 TalkWithKartik Analytics. All rights reserved.
                 </p>
             </motion.div>
         </div>

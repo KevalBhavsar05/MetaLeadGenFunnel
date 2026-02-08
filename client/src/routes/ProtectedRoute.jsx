@@ -1,4 +1,5 @@
 
+import SpinnerLoader from "@/components/common/SpinnerLoader";
 import { useApp } from "@/contexts/useApp";
 import { Outlet, Navigate } from "react-router-dom";
 
@@ -6,7 +7,7 @@ function ProtectedRoute() {
     const { user, isAuthLoading, isAuthError } = useApp();
 
     if (isAuthLoading) {
-        return <div>Loading...</div>;
+        return <SpinnerLoader className="h-screen"/>;
     }
 
     if (isAuthError || !user) return <Navigate to="/" replace />;

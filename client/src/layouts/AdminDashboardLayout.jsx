@@ -57,14 +57,6 @@ const AdminDashboardLayout = () => {
         });
     };
 
-    // if (isAuthLoading || logoutMutation.isPending) {
-    //     return (
-    //         <div className="min-h-screen flex items-center justify-center">
-    //             <SpinnerLoader />
-    //         </div>
-    //     );
-    // }
-
     return (
         <>
             <div className="flex w-full overflow-x-hidden">
