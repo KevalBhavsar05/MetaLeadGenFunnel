@@ -144,8 +144,8 @@ const ScheduleModal = ({ isOpen, onClose }) => {
     onClose();
     setTimeout(() => {
       setStep(1);
-      setSelectedDate(null);
-      setSelectedTime(null);
+      // setSelectedDate(null);
+      // setSelectedTime(null);
       setUserData({ name: "", email: "", phone: "" });
     }, 300);
   }, [onClose]);
@@ -507,12 +507,21 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                         <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-xl shadow-emerald-100">
                           <CheckCircle2 size={40} className="text-white" />
                         </div>
-                        <h2 className="text-3xl font-black text-slate-900">
-                          BOOKED!
-                        </h2>
-                        <p className="text-slate-500">
-                          {/* {selectedDate} at {formatSlotForDisplay(selectedTime)} */}
-                        </p>
+
+                        <div className="space-y-2">
+                          <h2 className="text-3xl font-black text-slate-900">BOOKED!</h2>
+                          <p className="text-slate-500 text-lg">
+                            {selectedDate} at {formatSlotForDisplay(selectedTime)}
+                          </p>
+                        </div>
+
+                        {/* New Instruction Block */}
+                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 max-w-sm mx-auto">
+                          <p className="text-sm text-slate-600">
+                            We've sent a confirmation to your email. Open it to <strong>add this appointment to your calendar</strong> so you don't miss it!
+                          </p>
+                        </div>
+
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                           <Button
                             type="button"
@@ -520,7 +529,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                             variant="outline"
                             className="px-8 h-12 rounded-xl border-slate-200 text-slate-600"
                           >
-                            Back
+                            Back to Home
                           </Button>
                         </div>
                       </div>

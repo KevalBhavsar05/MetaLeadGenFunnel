@@ -29,7 +29,7 @@ export const googleCallback = async (req, res) => {
       { upsert: true, new: true },
     );
 
-    const env = process.env.NODE_ENV || "development";
+    const env = process.env.NODE_ENV;
     const redirectUrl =
       env === "production"
         ? "https://meta-lead-gen-funnel.vercel.app/admin/dashboard?google=success"
