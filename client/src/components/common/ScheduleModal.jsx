@@ -13,6 +13,7 @@ import { useBookMeeting } from "@/hooks/useMeeting";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog";
+import { set } from "react-hook-form";
 
 /** Parse slot time string to minutes since midnight (handles "10:00", "10:00 AM", "1:00 PM") */
 function parseSlotToMinutes(timeStr) {
@@ -158,6 +159,9 @@ const ScheduleModal = ({ isOpen, onClose }) => {
           toast.error(err?.response?.data?.message || "Error booking meeting"),
       }
     );
+    setUserData({ name: "", email: "", phone: "" });
+    setSelectedDate(null);
+    setSelectedTime(null);
     setStep(3);
   }, [userData, selectedDate, selectedTime, meeting, queryClient]);
 
@@ -186,7 +190,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
             <button
               type="button"
               onClick={resetAndClose}
-              className="absolute top-4 right-4 md:top-6 md:right-6 z-[80] p-3 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
+              className="absolute cursor-pointer top-4 right-4 md:top-6 md:right-6 z-[80] p-3 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
               aria-label="Close"
             >
               <X size={20} className="text-slate-600" />
@@ -283,7 +287,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full h-12 md:h-14 text-white hover:bg-blue-700 bg-blue-600 rounded-xl md:rounded-2xl font-bold mt-4 shadow-xl shadow-blue-100"
+                    className="w-full h-12 md:h-14 cursor-pointer text-white hover:bg-blue-700 bg-blue-600 rounded-xl md:rounded-2xl font-bold mt-4 shadow-xl shadow-blue-100"
                   >
                     See Available Slots
                   </Button>
@@ -331,7 +335,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                                 setSelectedDate(dateStr);
                                 setSelectedTime(null);
                               }}
-                              className={`flex flex-col items-center justify-center py-2 px-1 md:p-3 rounded-xl md:rounded-2xl transition-all border-2
+                              className={`flex flex-col cursor-pointer items-center justify-center py-2 px-1 md:p-3 rounded-xl md:rounded-2xl transition-all border-2
                                 ${isSelected
                                   ? "bg-blue-600 border-blue-600 text-white shadow-lg"
                                   : hasSlots
@@ -378,7 +382,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                               key={`${slot.time}-${slot.label ?? ""}`}
                               type="button"
                               onClick={() => setSelectedTime(slot.time)}
-                              className={`w-full p-3 md:p-4 rounded-xl border-2 text-xs md:text-sm font-bold transition-all text-center lg:text-left
+                              className={`w-full p-3 md:p-4 rounded-xl cursor-pointer border-2 text-xs md:text-sm font-bold transition-all text-center lg:text-left
                                   ${selectedTime === slot.time
                                   ? "border-blue-600 bg-blue-50 text-blue-700"
                                   : "border-slate-50 bg-slate-50 text-slate-500"
@@ -400,7 +404,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                           trigger={
                             <Button
                               disabled={!selectedTime}
-                              className="w-full h-12 bg-slate-800 text-white rounded-xl mt-4"
+                              className="w-full h-12 cursor-pointer bg-slate-800 text-white rounded-xl mt-4"
                             >
                               Confirm Booking
                             </Button>
@@ -483,8 +487,8 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                           Error!
                         </h2>
                         <p className="text-slate-500">
-                          There was an issue booking your meeting. Please try
-                          again.
+                          {meeting.error?.response?.data?.message ||
+                            "Failed to book meeting. Please try again."}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                           <Button
@@ -507,7 +511,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                           BOOKED!
                         </h2>
                         <p className="text-slate-500">
-                          {selectedDate} at {formatSlotForDisplay(selectedTime)}
+                          {/* {selectedDate} at {formatSlotForDisplay(selectedTime)} */}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                           <Button

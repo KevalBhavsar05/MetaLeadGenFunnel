@@ -29,9 +29,12 @@ export const googleCallback = async (req, res) => {
       { upsert: true, new: true },
     );
 
-    res.redirect(
-      "https://meta-lead-gen-funnel.vercel.app/admin/dashboard?google=success",
-    );
+    const env = process.env.NODE_ENV || "development";
+    const redirectUrl =
+      env === "production"
+        ? "https://meta-lead-gen-funnel.vercel.app/admin/dashboard?google=success"
+        : "http://localhost:5173/admin/dashboard?google=success";
+    res.redirect(redirectUrl);
   } catch (error) {
     console.error("Google callback error:", error);
     res.status(500).send("Google authentication failed");

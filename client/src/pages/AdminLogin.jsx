@@ -5,6 +5,7 @@ import { useLoginAdmin } from '@/hooks/useAdminAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
 
 
 function AdminLogin() {
@@ -94,14 +95,15 @@ function AdminLogin() {
                             </div>
                         </div>
 
-                        <button
+                        <Button
+                            variant='btn'
                             type="submit"
-                            className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
+                            className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 text-md rounded-xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group"
                             disabled={login.isPending}
                         >
                             {login.isPending ? "Signing In..." : "Sign In"}
                             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                        </button>
+                        </Button>
                     </form>
                 </div>
 

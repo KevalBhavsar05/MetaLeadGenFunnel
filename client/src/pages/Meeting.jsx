@@ -188,7 +188,7 @@ const Meeting = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight">
-                        Session <span className="text-blue-600">Pipeline</span>
+                        Session <span className="text-blue-600">History</span>
                     </h1>
                     <p className="text-slate-500 text-sm font-medium uppercase tracking-widest mt-1">
                         Manage your strategy calls and affiliate intake
@@ -224,6 +224,16 @@ const Meeting = () => {
                             className="bg-transparent border-0 rounded-lg focus:ring-blue-500/20 p-0 shadow-none h-auto"
                         />
                     </button>
+                    {dateFilter && (
+                        <Button
+                            type="button"
+                            variant="link"
+                            onClick={() => setDateFilter("")}
+                            className="h-auto p-0 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-blue-600"
+                        >
+                            Clear Date
+                        </Button>
+                    )}
                     <Button
                         onClick={exportMeetingsToCsv}
                         disabled={table.getFilteredRowModel().rows.length === 0}

@@ -77,6 +77,19 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
       user = await User.create({ name, email, phone });
     }
 
+    // Find that user has booked a meeting on the same date for other slot
+    const existingMeeting = await Meeting.findOne({
+      userId: user._id,
+      date: new Date(date),
+      status: { $ne: "cancelled" },
+    });
+    if (existingMeeting) {
+      return res.status(409).json({
+        success: false,
+        message: "You have already booked a meeting on this date",
+      });
+    }
+    
     // 2️⃣ Prevent double booking
     const exists = await Meeting.findOne({
       date: new Date(date),
