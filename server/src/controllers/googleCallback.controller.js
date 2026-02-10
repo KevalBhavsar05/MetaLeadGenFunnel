@@ -1,7 +1,9 @@
 import { oauth2Client } from "../../config/googleConfig.js";
 import User from "../models/user.model.js";
 import dotenv from "dotenv";
-dotenv.config();
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
 // Callback to handle Google's response
 export const googleCallback = async (req, res) => {
   try {
