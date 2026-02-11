@@ -1,9 +1,5 @@
 import { oauth2Client } from "../../config/googleConfig.js";
 import User from "../models/user.model.js";
-import dotenv from "dotenv";
-if (process.env.NODE_ENV !== "production") {
-  dotenv.config();
-}
 // Callback to handle Google's response
 export const googleCallback = async (req, res) => {
   try {
@@ -33,7 +29,7 @@ export const googleCallback = async (req, res) => {
 
     // const env = process.env.NODE_ENV;
     const redirectUrl = `${process.env.FRONTEND_URL}/admin/dashboard?google=success`;
-    console.log(redirectUrl);
+    // console.log(redirectUrl);
 
     return res.redirect(redirectUrl);
   } catch (error) {

@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -9,6 +10,15 @@ import meetingRoutes from "./src/routes/meeting.routes.js";
 import googleAuthRoutes from "./src/routes/googleAuth.routes.js";
 import adminAuthRoutes from "./src/routes/adminAuth.routes.js";
 // import "./src/services/cron.service.js";
+
+// Verify critical env vars are loaded
+if (!process.env.FRONTEND_URL) {
+  console.error("ERROR: FRONTEND_URL environment variable is not set!");
+}
+if (!process.env.PORT) {
+  console.error("ERROR: PORT environment variable is not set!");
+}
+
 const app = express();
 
 const allowedOrigins = [
