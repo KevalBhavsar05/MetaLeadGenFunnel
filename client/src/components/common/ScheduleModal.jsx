@@ -144,8 +144,8 @@ const ScheduleModal = ({ isOpen, onClose }) => {
     onClose();
     setTimeout(() => {
       setStep(1);
-      // setSelectedDate(null);
-      // setSelectedTime(null);
+      setSelectedDate(null);
+      setSelectedTime(null);
       setUserData({ name: "", email: "", phone: "" });
     }, 300);
   }, [onClose]);
@@ -159,9 +159,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
           toast.error(err?.response?.data?.message || "Error booking meeting"),
       }
     );
-    setUserData({ name: "", email: "", phone: "" });
-    setSelectedDate(null);
-    setSelectedTime(null);
+    // Keep data for the success screen (Step 3) - Don't clear here!
     setStep(3);
   }, [userData, selectedDate, selectedTime, meeting, queryClient]);
 
@@ -525,7 +523,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                           <Button
                             type="button"
-                            onClick={() => setStep(1)}
+                            onClick={resetAndClose}
                             variant="outline"
                             className="px-8 h-12 rounded-xl border-slate-200 text-slate-600"
                           >
