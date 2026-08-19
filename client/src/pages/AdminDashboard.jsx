@@ -1,9 +1,10 @@
-import React, { useState, useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import Sidebar from "@/components/common/Sidebar";
 import Meeting from "./Meeting";
 import Overview from "./Overview";
 import SlotConfig from "./SlotConfig";
-import { BarChart3, Menu } from "lucide-react";
+import { Menu, TrendingUp } from "lucide-react";
+import Users from "@/components/common/Users";
 
 const MetaFlowDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -11,7 +12,10 @@ const MetaFlowDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const closeMobileMenu = useCallback(() => setIsMobileMenuOpen(false), []);
-  const toggleSidebarCollapse = useCallback(() => setIsSidebarCollapsed((p) => !p), []);
+  const toggleSidebarCollapse = useCallback(
+    () => setIsSidebarCollapsed((p) => !p),
+    [],
+  );
 
   const renderContent = () => {
     switch (activeTab) {
@@ -19,6 +23,8 @@ const MetaFlowDashboard = () => {
         return <Overview />;
       case "meetings":
         return <Meeting />;
+      case "users":
+        return <Users />;
       case "slots":
         return <SlotConfig />;
       default:
@@ -27,7 +33,7 @@ const MetaFlowDashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC]">
+    <div className="flex min-h-screen bg-slate-50 text-slate-950">
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -37,28 +43,26 @@ const MetaFlowDashboard = () => {
         onToggleCollapse={toggleSidebarCollapse}
       />
 
-      {/* Mobile header: logo + hamburger */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-30 h-16 px-4 flex items-center justify-between bg-white border-b border-slate-200 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-            <BarChart3 size={18} className="text-white" />
+      <header className="fixed inset-x-0 top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm lg:hidden">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white">
+            <TrendingUp size={18} />
           </div>
-          <span className="text-lg font-black text-slate-900 tracking-tighter uppercase">
+          <span className="text-lg font-black tracking-tight">
             TalkWith<span className="text-blue-600">Kartik</span>
           </span>
         </div>
         <button
           type="button"
           onClick={() => setIsMobileMenuOpen(true)}
-          className="p-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200"
+          className="rounded-lg border border-slate-200 bg-white p-2 text-slate-600"
           aria-label="Open menu"
         >
-          <Menu size={22} />
+          <Menu size={21} />
         </button>
       </header>
 
-      {/* MAIN CONTENT: offset for mobile header + desktop sidebar */}
-      <main className="flex-1 min-h-screen overflow-x-hidden pt-16 lg:pt-0">
+      <main className="min-h-screen flex-1 overflow-x-hidden pt-16 lg:pt-0">
         {renderContent()}
       </main>
     </div>

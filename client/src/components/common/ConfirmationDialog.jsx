@@ -13,66 +13,90 @@ import {
 import { AlertCircle } from "lucide-react";
 
 function ConfirmationDialog({
-    trigger, // React node
+    trigger,
     title = "Are you sure?",
     description = "This action cannot be undone.",
     content = null,
     confirmText = "Confirm",
     cancelText = "Cancel",
-    onConfirm, // This is your async handleSubmit function
+    onConfirm,
+    requireReason = false,
+    reasonPlaceholder = "Please provide a reason...",
+    reasonLabel = "Reason",
 }) {
-    // ⭐ 1. Add state to control the dialog's open status
     const [open, setOpen] = React.useState(false);
+    const [reason, setReason] = React.useState("");
 
-    // ⭐ 2. Create a stable, async handler that manages the confirmation logic
     const handleConfirm = async (event) => {
-        // Prevent the default Radix close behavior initially
         event.preventDefault();
 
-        // Execute the user's async onConfirm logic
-        await onConfirm();
+        if (requireReason) {
+            await onConfirm(reason);
+        } else {
+            await onConfirm();
+        }
 
-        // ⭐ 3. Manually close the dialog after the async operation is complete
+        // Reset and close
+        setReason("");
         setOpen(false);
     };
 
+    // Reset reason when dialog closes
+    const handleOpenChange = (newOpen) => {
+        setOpen(newOpen);
+        if (!newOpen) {
+            setReason("");
+        }
+    };
+    const isConfirmDisabled = requireReason && reason.trim().length === 0;
+
     return (
-        // ⭐ 4. Pass 'open' and 'onOpenChange' to the root AlertDialog
-        <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialog open={open} onOpenChange={handleOpenChange}>
             <AlertDialogTrigger asChild>
-                {/* Pass down the trigger prop for the button */}
                 {trigger}
             </AlertDialogTrigger>
 
-            <AlertDialogContent className="max-w-[92vw] sm:max-w-md rounded-[2rem] sm:rounded-[2.5rem] border border-slate-200 bg-white shadow-2xl p-0 overflow-hidden">
-                <AlertDialogHeader className="p-6 sm:p-8 space-y-2">
-                    <AlertDialogTitle className="text-lg sm:text-xl font-black uppercase tracking-tight text-slate-900">
-                        <AlertCircle className="inline mr-2 mb-1 text-blue-600" size={20} />
-                        {title}
+            <AlertDialogContent className="max-w-[92vw] gap-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-0 shadow-2xl shadow-slate-950/15 sm:max-w-md">
+                <AlertDialogHeader className="border-b border-slate-100 bg-slate-50 px-5 py-5 text-left sm:px-6">
+                    <AlertDialogTitle className="flex items-center gap-3 text-lg font-black tracking-tight text-slate-950">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                            <AlertCircle size={20} />
+                        </span>
+                        <span>{title}</span>
                     </AlertDialogTitle>
-                    <AlertDialogDescription className="text-sm sm:text-base text-slate-500">
+                    <AlertDialogDescription className="mt-2 text-sm leading-6 text-slate-500">
                         {description}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
-                {content && (
-                    <div className="px-6 sm:px-8 pb-2">
-                        {content}
-                    </div>
-                )}
+                <div className="space-y-4 px-5 py-5 sm:px-6">
+                    {requireReason && (
+                        <div>
+                            <label className="mb-2 block text-[11px] font-black uppercase tracking-widest text-slate-500">
+                                {reasonLabel}
+                            </label>
+                            <textarea
+                                value={reason}
+                                onChange={(e) => setReason(e.target.value)}
+                                placeholder={reasonPlaceholder}
+                                className="min-h-24 w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                                rows={3}
+                            />
+                        </div>
+                    )}
 
-                {/* ⭐ Fixed Footer: Buttons in one row on mobile with proper spacing */}
-                <AlertDialogFooter className="p-6 sm:p-8 pt-0 flex-row gap-2 sm:gap-3">
-                    <AlertDialogCancel className="flex-1 m-0 rounded-xl border-slate-200 text-sm sm:text-base">
+                    {content && <div>{content}</div>}
+                </div>
+
+                <AlertDialogFooter className="flex-row gap-2 border-t border-slate-100 bg-white px-5 py-4 sm:gap-3 sm:px-6">
+                    <AlertDialogCancel className="m-0 h-11 flex-1 cursor-pointer rounded-lg text-sm font-bold">
                         {cancelText}
                     </AlertDialogCancel>
 
-                    {/* ⭐ 5. Pass the new handler to onClick.
-               We prevent the default submit/close, run the async function, then close.
-          */}
                     <AlertDialogAction
                         onClick={handleConfirm}
-                        className="flex-1 m-0 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base"
+                        disabled={isConfirmDisabled}
+                        className="m-0 h-11 flex-1 cursor-pointer rounded-lg bg-blue-600 text-sm font-black text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {confirmText}
                     </AlertDialogAction>

@@ -1,66 +1,108 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-import { ShieldCheck, Lock, EyeOff, FileText } from "lucide-react";
+import { ArrowLeft, ShieldCheck, TrendingUp } from "lucide-react";
+import { Link, NavLink } from "react-router-dom";
+
+const sections = [
+  {
+    title: "1. Information Collection",
+    body: "We collect information necessary to provide mentorship and educational services. This may include your name, email, phone number, scheduling details, and goals shared during strategy sessions.",
+  },
+  {
+    title: "2. Use of Data",
+    body: "Your data is used to personalize your learning roadmap, schedule and manage one-on-one strategy sessions, send relevant updates, and improve the platform experience.",
+  },
+  {
+    title: "3. Data Security",
+    body: "We take reasonable technical and organizational measures to protect your information from unauthorized access, misuse, disclosure, or alteration.",
+  },
+  {
+    title: "4. Third-Party Sharing",
+    body: "TalkWithKartik does not sell or lease user data to third-party marketers. Information may be shared only with essential service providers needed to deliver scheduling, communication, or platform services.",
+  },
+];
 
 const PrivacyPolicy = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
   return (
-    <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-700">
-      <div className="max-w-4xl mx-auto px-6 py-24 md:py-32">
+    <div className="min-h-screen bg-slate-50 text-slate-950">
+      <nav className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-6">
+          <Link to="/" className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white">
+              <TrendingUp size={19} />
+            </span>
+            <span className="text-lg font-black tracking-tight">
+              TalkWith<span className="text-blue-600">Kartik</span>
+            </span>
+          </Link>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 transition hover:bg-slate-50 hover:text-blue-600"
+          >
+            <ArrowLeft size={15} />
+            Home
+          </Link>
+        </div>
+      </nav>
+
+      <main className="mx-auto max-w-5xl px-5 py-12 sm:px-6 sm:py-16">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-8"
+          className="mb-8 rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-widest">
-            <ShieldCheck size={14} />
+          <div className="mb-5 inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-blue-700">
+            <ShieldCheck size={15} />
             Data Protection
           </div>
-
-          <h1 className="text-5xl md:text-6xl font-black tracking-tighter uppercase text-slate-900">
-            Privacy <span className="text-blue-600">Policy.</span>
+          <h1 className="text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+            Privacy Policy
           </h1>
-
-          <p className="text-slate-500 font-medium italic">Last Updated: October 2023</p>
-
-          <hr className="border-slate-100" />
-
-          <div className="space-y-12 text-slate-600 leading-relaxed text-lg">
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">1. Information Collection</h2>
-              <p>
-                At TalkWithKartik, we collect information necessary to provide mentorship and educational services. This includes personal identifiers (name, email) and professional goals shared during strategy sessions.
-              </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">2. Use of Data</h2>
-              <p>Your data is utilized solely for:</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Personalizing your learning roadmap.</li>
-                <li>Scheduling and managing one-on-one strategy sessions.</li>
-                <li>Sending updates regarding platform changes or new modules.</li>
-              </ul>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">3. Data Security</h2>
-              <p>
-                We implement industry-standard encryption to protect your information. As a government-registered entity, we adhere to strict data handling protocols to prevent unauthorized access or disclosure.
-              </p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">4. Third-Party Sharing</h2>
-              <p>
-                TalkWithKartik does not sell or lease user data to third-party marketers. Data is only shared with essential service providers (like payment processors or scheduling tools) required to fulfill our service to you.
-              </p>
-            </section>
-          </div>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
+            This policy explains how we collect, use, and protect information
+            submitted through TalkWithKartik.
+          </p>
+          <p className="mt-4 text-xs font-black uppercase tracking-widest text-slate-400">
+            Last updated: October 2023
+          </p>
         </motion.div>
-      </div>
+
+        <div className="space-y-4">
+          {sections.map((section) => (
+            <section
+              key={section.title}
+              className="rounded-lg border border-slate-200 bg-white p-5 sm:p-6"
+            >
+              <h2 className="text-lg font-black text-slate-950">
+                {section.title}
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
+                {section.body}
+              </p>
+            </section>
+          ))}
+        </div>
+      </main>
+
+      <footer className="border-t border-slate-200 bg-white px-5 py-8 sm:px-6">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
+            © 2026 TalkWithKartik
+          </p>
+          <div className="flex gap-6 text-xs font-black uppercase tracking-widest text-slate-500">
+            <NavLink to="/privacy-policy" className="hover:text-blue-600">
+              Privacy
+            </NavLink>
+            <NavLink to="/term-of-service" className="hover:text-blue-600">
+              Terms
+            </NavLink>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

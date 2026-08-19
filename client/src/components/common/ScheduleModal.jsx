@@ -1,21 +1,21 @@
-import React, { useState, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useCallback, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  X,
+  ArrowLeft,
+  ArrowRight,
   Calendar as CalendarIcon,
   CheckCircle2,
   Loader2,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useFetchSlots } from "@/hooks/useSlots";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog";
 import { useBookMeeting } from "@/hooks/useMeeting";
+import { useFetchSlots } from "@/hooks/useSlots";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import ConfirmationDialog from "@/components/common/ConfirmationDialog";
-import { set } from "react-hook-form";
 
-/** Parse slot time string to minutes since midnight (handles "10:00", "10:00 AM", "1:00 PM") */
 function parseSlotToMinutes(timeStr) {
   if (!timeStr || typeof timeStr !== "string") return 0;
   const upper = timeStr.trim().toUpperCase();
@@ -33,7 +33,6 @@ function parseSlotToMinutes(timeStr) {
   return hours * 60 + minutes;
 }
 
-/** Display slot time in 12h format (idempotent if already "10:00 AM") */
 function formatSlotForDisplay(timeStr) {
   if (!timeStr || typeof timeStr !== "string") return "";
   if (/AM|PM/i.test(timeStr)) return timeStr.trim();
@@ -45,11 +44,58 @@ function formatSlotForDisplay(timeStr) {
   return `${hour12}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
+const steps = ["Your Info", "Pick a Slot", "Confirmed"];
+
+const Field = ({ label, children }) => (
+  <div className="space-y-2">
+    <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+      {label}
+    </label>
+    {children}
+  </div>
+);
+
+const StepBadge = ({ index, activeStep }) => {
+  const stepNumber = index + 1;
+  const isDone = activeStep > stepNumber;
+  const isActive = activeStep === stepNumber;
+
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      <span
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-xs font-black transition ${
+          isDone
+            ? "border-blue-600 bg-blue-600 text-white"
+            : isActive
+              ? "border-blue-600 bg-blue-50 text-blue-700"
+              : "border-slate-200 bg-white text-slate-400"
+        }`}
+      >
+        {isDone ? <CheckCircle2 size={15} /> : stepNumber}
+      </span>
+      <span
+        className={`hidden truncate text-[11px] font-black uppercase tracking-widest sm:inline ${
+          isActive ? "text-slate-950" : isDone ? "text-blue-600" : "text-slate-400"
+        }`}
+      >
+        {steps[index]}
+      </span>
+    </div>
+  );
+};
+
+const EmptyState = ({ children }) => (
+  <div className="flex min-h-24 items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 text-center">
+    <p className="text-sm text-slate-400">{children}</p>
+  </div>
+);
+
 const ScheduleModal = ({ isOpen, onClose }) => {
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [userData, setUserData] = useState({ name: "", email: "", phone: "" });
+
   const { data, isLoading } = useFetchSlots();
   const meeting = useBookMeeting();
   const queryClient = useQueryClient();
@@ -57,7 +103,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
   const availableDates = useMemo(() => {
     const dates = [];
     const today = new Date();
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 30; i += 1) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
       dates.push(d);
@@ -65,7 +111,6 @@ const ScheduleModal = ({ isOpen, onClose }) => {
     return dates;
   }, []);
 
-  /** YYYY-MM-DD in local time (avoids timezone mismatches with API dates) */
   const toLocalDateStr = useCallback((dateObj) => {
     const y = dateObj.getFullYear();
     const m = String(dateObj.getMonth() + 1).padStart(2, "0");
@@ -79,9 +124,10 @@ const ScheduleModal = ({ isOpen, onClose }) => {
       const dayOfWeek = dateObj.getDay();
       const dateStr = toLocalDateStr(dateObj);
       const dayConfig = data.slots.find(
-        (s) => s.dayOfWeek === dayOfWeek && s.isActive
+        (s) => s.dayOfWeek === dayOfWeek && s.isActive,
       );
       if (!dayConfig) return [];
+
       const bookings = data.bookedMeetings ?? [];
       return dayConfig.slots.filter((slot) => {
         const isBooked = bookings.some((b) => {
@@ -97,15 +143,15 @@ const ScheduleModal = ({ isOpen, onClose }) => {
         return !isBooked;
       });
     },
-    [data?.slots, data?.bookedMeetings, toLocalDateStr]
+    [data?.slots, data?.bookedMeetings, toLocalDateStr],
   );
+
+  const todayStr = useMemo(() => toLocalDateStr(new Date()), [toLocalDateStr]);
 
   const slotsForSelectedDate = useMemo(() => {
     if (!selectedDate) return [];
     return getSlotsForDate(new Date(selectedDate));
   }, [selectedDate, getSlotsForDate]);
-
-  const todayStr = useMemo(() => toLocalDateStr(new Date()), [toLocalDateStr]);
 
   const hasAvailableSlots = useCallback(
     (dateObj) => {
@@ -117,12 +163,12 @@ const ScheduleModal = ({ isOpen, onClose }) => {
       const currentMins = now.getHours() * 60 + now.getMinutes();
       return slots.some((slot) => parseSlotToMinutes(slot.time) > currentMins);
     },
-    [getSlotsForDate, toLocalDateStr, todayStr]
+    [getSlotsForDate, toLocalDateStr, todayStr],
   );
 
   const availableDateOptions = useMemo(
-    () => availableDates.filter(hasAvailableSlots).slice(0, 3),
-    [availableDates, hasAvailableSlots]
+    () => availableDates.filter(hasAvailableSlots).slice(0, 6),
+    [availableDates, hasAvailableSlots],
   );
 
   const slotsAvailableForSelection = useMemo(() => {
@@ -131,7 +177,7 @@ const ScheduleModal = ({ isOpen, onClose }) => {
     const now = new Date();
     const currentMins = now.getHours() * 60 + now.getMinutes();
     return slotsForSelectedDate.filter(
-      (slot) => parseSlotToMinutes(slot.time) > currentMins
+      (slot) => parseSlotToMinutes(slot.time) > currentMins,
     );
   }, [selectedDate, slotsForSelectedDate, todayStr]);
 
@@ -157,9 +203,8 @@ const ScheduleModal = ({ isOpen, onClose }) => {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["slots"] }),
         onError: (err) =>
           toast.error(err?.response?.data?.message || "Error booking meeting"),
-      }
+      },
     );
-    // Keep data for the success screen (Step 3) - Don't clear here!
     setStep(3);
   }, [userData, selectedDate, selectedTime, meeting, queryClient]);
 
@@ -172,276 +217,313 @@ const ScheduleModal = ({ isOpen, onClose }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={resetAndClose}
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[60]"
+            className="fixed inset-0 z-[60] bg-slate-950/60 backdrop-blur-sm"
           />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 40 }}
+            initial={{ opacity: 0, scale: 0.96, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-                         w-[95%] sm:w-[90%] max-w-4xl max-h-[90vh] 
-                         bg-white rounded-[2rem] md:rounded-[3rem] shadow-2xl z-[70] 
-                         flex flex-col md:flex-row overflow-hidden"
+            exit={{ opacity: 0, scale: 0.98, y: 12 }}
+            transition={{ duration: 0.2 }}
+            className="fixed left-1/2 top-1/2 z-[70] flex max-h-[92vh] w-[94vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-slate-950/20"
           >
-            {/* Improved Close Button for Touch */}
             <button
               type="button"
               onClick={resetAndClose}
-              className="absolute cursor-pointer top-4 right-4 md:top-6 md:right-6 z-[80] p-3 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
+              className="absolute right-4 top-4 z-[80] flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-950"
               aria-label="Close"
             >
-              <X size={20} className="text-slate-600" />
+              <X size={17} />
             </button>
 
-            {/* Sidebar (becomes Header on Mobile) */}
-            <div className="w-full md:w-[240px] bg-slate-50 p-6 md:p-10 border-b md:border-b-0 md:border-r border-slate-100 flex flex-row md:flex-col justify-between items-center md:items-start">
-              <div className="flex items-center md:block gap-4">
-                <div className="w-10 h-10 md:w-14 md:h-14 bg-blue-600 rounded-xl md:rounded-2xl flex items-center justify-center mb-0 md:mb-6 shadow-lg shadow-blue-200 shrink-0">
-                  <CalendarIcon className="text-white w-5 h-5 md:w-6 md:h-6" />
+            <div className="border-b border-slate-200 bg-slate-50 px-5 py-5 sm:px-6">
+              <div className="mb-5 flex items-center gap-3 pr-12">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white">
+                  <CalendarIcon size={19} />
+                </span>
+                <div>
+                  <p className="text-lg font-black tracking-tight text-slate-950">
+                    Book a Session
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Pick your details, date, and time.
+                  </p>
                 </div>
-                <h2 className="text-xl md:text-2xl font-bold text-slate-900 leading-tight">
-                  {step === 1
-                    ? "Your Info"
-                    : step === 2
-                      ? "Pick a Slot"
-                      : "Status"}
-                </h2>
               </div>
 
-              {selectedDate && step === 2 && (
-                <div className="hidden md:block pt-6 border-t border-slate-200 w-full">
-                  <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
-                    Selection
-                  </p>
-                  <p className="text-sm font-semibold text-slate-700 mt-1">
-                    {selectedDate}
-                  </p>
-                  {selectedTime && (
-                    <p className="text-blue-600 font-bold text-sm">
-                      {formatSlotForDisplay(selectedTime)}
-                    </p>
-                  )}
-                </div>
-              )}
+              <div className="flex items-center">
+                {steps.map((_, index) => (
+                  <React.Fragment key={index}>
+                    <StepBadge index={index} activeStep={step} />
+                    {index < steps.length - 1 && (
+                      <div
+                        className={`mx-2 h-px flex-1 ${
+                          step > index + 1 ? "bg-blue-600" : "bg-slate-200"
+                        }`}
+                      />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
 
-            {/* Main Content Area */}
-            <div className="flex-1 p-6 md:p-12 overflow-y-auto">
-              {step === 1 && (
-                <motion.form
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    setStep(2);
-                  }}
-                  className="space-y-4 max-w-md mx-auto"
-                >
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">
-                      Full Name
-                    </label>
-                    <Input
-                      required
-                      type="text"
-                      value={userData.name}
-                      onChange={(e) =>
-                        setUserData({ ...userData, name: e.target.value })
-                      }
-                      className="h-12 md:h-14 rounded-xl md:rounded-2xl"
-                      placeholder="Enter your name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">
-                      Email
-                    </label>
-                    <Input
-                      required
-                      type="email"
-                      value={userData.email}
-                      onChange={(e) =>
-                        setUserData({ ...userData, email: e.target.value })
-                      }
-                      className="h-12 md:h-14 rounded-xl md:rounded-2xl"
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">
-                      Phone
-                    </label>
-                    <Input
-                      required
-                      type="tel"
-                      value={userData.phone}
-                      onChange={(e) =>
-                        setUserData({ ...userData, phone: e.target.value })
-                      }
-                      className="h-12 md:h-14 rounded-xl md:rounded-2xl"
-                      placeholder="Enter your phone number"
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full h-12 md:h-14 cursor-pointer text-white hover:bg-blue-700 bg-blue-600 rounded-xl md:rounded-2xl font-bold mt-4 shadow-xl shadow-blue-100"
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6">
+              <AnimatePresence mode="wait">
+                {step === 1 && (
+                  <motion.form
+                    key="step1"
+                    initial={{ opacity: 0, x: 12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -12 }}
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      setStep(2);
+                    }}
+                    className="mx-auto max-w-md space-y-5"
                   >
-                    See Available Slots
-                  </Button>
-                </motion.form>
-              )}
+                    <div>
+                      <h3 className="text-2xl font-black tracking-tight text-slate-950">
+                        Tell us about yourself
+                      </h3>
+                      <p className="mt-2 text-sm leading-6 text-slate-500">
+                        We will use this to send your confirmation and meeting
+                        details.
+                      </p>
+                    </div>
 
-              {step === 2 && (
-                <motion.div
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex flex-col lg:flex-row gap-8"
-                >
-                  {/* Date Grid */}
-                  <div className="flex-1">
+                    <Field label="Full Name">
+                      <Input
+                        required
+                        type="text"
+                        value={userData.name}
+                        onChange={(e) =>
+                          setUserData({ ...userData, name: e.target.value })
+                        }
+                        className="h-12 rounded-lg border-slate-200 bg-white focus-visible:ring-blue-500/20"
+                        placeholder="Enter your full name"
+                      />
+                    </Field>
+
+                    <Field label="Email Address">
+                      <Input
+                        required
+                        type="email"
+                        value={userData.email}
+                        onChange={(e) =>
+                          setUserData({ ...userData, email: e.target.value })
+                        }
+                        className="h-12 rounded-lg border-slate-200 bg-white focus-visible:ring-blue-500/20"
+                        placeholder="Enter your email"
+                      />
+                    </Field>
+
+                    <Field label="Phone Number">
+                      <Input
+                        required
+                        type="tel"
+                        value={userData.phone}
+                        onChange={(e) =>
+                          setUserData({ ...userData, phone: e.target.value })
+                        }
+                        className="h-12 rounded-lg border-slate-200 bg-white focus-visible:ring-blue-500/20"
+                        placeholder="Enter your phone number"
+                      />
+                    </Field>
+
                     <Button
-                      type="button"
-                      onClick={() => setStep(1)}
-                      variant="link"
-                      className="mt-1 mb-4 p-0 h-auto cursor-pointer text-blue-500 hover:text-blue-600 underline underline-offset-4"
+                      type="submit"
+                      className="h-12 w-full cursor-pointer rounded-lg bg-blue-600 font-black text-white hover:bg-blue-700"
                     >
-                      Back
+                      See Available Slots
+                      <ArrowRight size={16} />
                     </Button>
-                    <h3 className="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest">
-                      Select a Date (Next 3 Available)
-                    </h3>
-                    {isLoading ? (
-                      <div className="h-24 md:h-32 border-2 border-dashed border-slate-100 rounded-2xl flex items-center justify-center text-center">
-                        <p className="text-slate-300 text-xs italic">
-                          Loading available dates...
+                  </motion.form>
+                )}
+
+                {step === 2 && (
+                  <motion.div
+                    key="step2"
+                    initial={{ opacity: 0, x: 12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -12 }}
+                    className="space-y-6"
+                  >
+                    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                      <div>
+                        <h3 className="text-2xl font-black tracking-tight text-slate-950">
+                          Pick your slot
+                        </h3>
+                        <p className="mt-2 text-sm text-slate-500">
+                          Choose a date and time that works best for you.
                         </p>
                       </div>
-                    ) : availableDateOptions.length > 0 ? (
-                      <div className="grid grid-cols-5 sm:grid-cols-5 gap-2 md:gap-3">
-                        {availableDateOptions.map((date) => {
-                          const dateStr = toLocalDateStr(date);
-                          const isSelected = selectedDate === dateStr;
-                          const hasSlots = hasAvailableSlots(date);
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setStep(1)}
+                        className="h-10 cursor-pointer rounded-lg border-slate-200 text-slate-600"
+                      >
+                        <ArrowLeft size={15} />
+                        Back
+                      </Button>
+                    </div>
 
-                          return (
-                            <button
-                              type="button"
-                              key={dateStr}
-                              disabled={!hasSlots}
-                              onClick={() => {
-                                setSelectedDate(dateStr);
-                                setSelectedTime(null);
-                              }}
-                              className={`flex flex-col cursor-pointer items-center justify-center py-2 px-1 md:p-3 rounded-xl md:rounded-2xl transition-all border-2
-                                ${isSelected
-                                  ? "bg-blue-600 border-blue-600 text-white shadow-lg"
-                                  : hasSlots
-                                    ? "bg-white border-slate-100 text-slate-700 hover:border-blue-200"
-                                    : "bg-slate-50 border-transparent text-slate-300 opacity-50 cursor-not-allowed"
-                                }
-                              `}
-                            >
-                              <span
-                                className={`text-[9px] md:text-[10px] font-bold uppercase ${isSelected ? "text-blue-100" : "opacity-60"
-                                  }`}
-                              >
-                                {date.toLocaleString("default", {
-                                  weekday: "short",
-                                })}
-                              </span>
-                              <span className="text-base md:text-lg font-black">
-                                {date.getDate()}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="h-24 md:h-32 border-2 border-dashed border-slate-100 rounded-2xl flex items-center justify-center text-center">
-                        <p className="text-slate-300 text-xs italic">
-                          No available slots in the next 30 days
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Slot list */}
-                  <div className="w-full lg:w-64">
-                    <h3 className="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest">
-                      Available Times{" "}
-                      {selectedDate && `for ${selectedDate.split("-")[2]}`}
-                    </h3>
-                    {selectedDate ? (
-                      <div className="space-y-2">
-                        <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
-                          {slotsAvailableForSelection.map((slot) => (
-                            <button
-                              key={`${slot.time}-${slot.label ?? ""}`}
-                              type="button"
-                              onClick={() => setSelectedTime(slot.time)}
-                              className={`w-full p-3 md:p-4 rounded-xl cursor-pointer border-2 text-xs md:text-sm font-bold transition-all text-center lg:text-left
-                                  ${selectedTime === slot.time
-                                  ? "border-blue-600 bg-blue-50 text-blue-700"
-                                  : "border-slate-50 bg-slate-50 text-slate-500"
-                                }`}
-                            >
-                              {formatSlotForDisplay(slot.time)}
-                            </button>
-                          ))}
+                    <div>
+                      <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-slate-500">
+                        Select a date
+                      </p>
+                      {isLoading ? (
+                        <div className="flex min-h-24 items-center justify-center">
+                          <Loader2
+                            size={24}
+                            className="animate-spin text-slate-400"
+                          />
                         </div>
+                      ) : availableDateOptions.length > 0 ? (
+                        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                          {availableDateOptions.map((date) => {
+                            const dateStr = toLocalDateStr(date);
+                            const isSelected = selectedDate === dateStr;
 
-                        {noSlotsLeftForToday && (
-                          <p className="text-xs text-rose-500 italic mt-2">
-                            No slots left today.
+                            return (
+                              <button
+                                key={dateStr}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedDate(dateStr);
+                                  setSelectedTime(null);
+                                }}
+                                className={`rounded-lg border p-3 text-center transition ${
+                                  isSelected
+                                    ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                                    : "border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50"
+                                }`}
+                              >
+                                <span
+                                  className={`block text-[10px] font-black uppercase tracking-widest ${
+                                    isSelected ? "text-blue-100" : "text-slate-400"
+                                  }`}
+                                >
+                                  {date.toLocaleString("default", {
+                                    weekday: "short",
+                                  })}
+                                </span>
+                                <span className="mt-1 block text-2xl font-black leading-none">
+                                  {date.getDate()}
+                                </span>
+                                <span
+                                  className={`mt-1 block text-[10px] font-bold uppercase ${
+                                    isSelected ? "text-blue-100" : "text-slate-400"
+                                  }`}
+                                >
+                                  {date.toLocaleString("default", {
+                                    month: "short",
+                                  })}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <EmptyState>
+                          No available slots in the next 30 days.
+                        </EmptyState>
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="mb-3 text-[11px] font-black uppercase tracking-widest text-slate-500">
+                        {selectedDate
+                          ? `Available times for ${selectedDate}`
+                          : "Available times"}
+                      </p>
+
+                      {!selectedDate ? (
+                        <EmptyState>Select a date first.</EmptyState>
+                      ) : slotsAvailableForSelection.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                          {slotsAvailableForSelection.map((slot) => {
+                            const isSelected = selectedTime === slot.time;
+                            return (
+                              <button
+                                key={`${slot.time}-${slot.label ?? ""}`}
+                                type="button"
+                                onClick={() => setSelectedTime(slot.time)}
+                                className={`rounded-lg border px-4 py-3 text-sm font-black transition ${
+                                  isSelected
+                                    ? "border-blue-600 bg-blue-50 text-blue-700"
+                                    : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50"
+                                }`}
+                              >
+                                {formatSlotForDisplay(slot.time)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : noSlotsLeftForToday ? (
+                        <EmptyState>
+                          No slots remaining for today. Please pick another
+                          date.
+                        </EmptyState>
+                      ) : (
+                        <EmptyState>No slots available for this date.</EmptyState>
+                      )}
+                    </div>
+
+                    {selectedDate && selectedTime && (
+                      <div className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+                            Your selection
                           </p>
-                        )}
-
+                          <p className="mt-1 font-bold text-slate-950">
+                            {selectedDate} at{" "}
+                            {formatSlotForDisplay(selectedTime)}
+                          </p>
+                        </div>
 
                         <ConfirmationDialog
                           trigger={
                             <Button
-                              disabled={!selectedTime}
-                              className="w-full h-12 cursor-pointer bg-slate-800 text-white rounded-xl mt-4"
+                              type="button"
+                              className="h-11 cursor-pointer rounded-lg bg-blue-600 font-black text-white hover:bg-blue-700"
                             >
                               Confirm Booking
+                              <ArrowRight size={15} />
                             </Button>
                           }
                           title="Confirm Booking"
-                          description="Please confirm the details before booking."
+                          description="Please review your details before confirming."
                           content={
                             <div className="space-y-3">
-                              <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                                  User Details
+                              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                  Contact Details
                                 </p>
-                                <div className="mt-2 space-y-1">
-                                  <p className="text-sm font-semibold text-slate-800">
-                                    {userData.name || "-"}
-                                  </p>
-                                  <p className="text-xs text-slate-500">
-                                    {userData.email || "-"}
-                                  </p>
-                                  <p className="text-xs text-slate-500">
-                                    {userData.phone || "-"}
-                                  </p>
-                                </div>
+                                <p className="mt-2 font-bold text-slate-950">
+                                  {userData.name}
+                                </p>
+                                <p className="text-sm text-slate-500">
+                                  {userData.email}
+                                </p>
+                                <p className="text-sm text-slate-500">
+                                  {userData.phone}
+                                </p>
                               </div>
-
                               <div className="grid grid-cols-2 gap-3">
-                                <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                <div className="rounded-lg border border-slate-200 bg-white p-4">
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                                     Date
                                   </p>
-                                  <p className="mt-2 text-sm font-semibold text-slate-800">
-                                    {selectedDate || "-"}
+                                  <p className="mt-2 font-bold text-slate-950">
+                                    {selectedDate}
                                   </p>
                                 </div>
-                                <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                <div className="rounded-lg border border-slate-200 bg-white p-4">
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                                     Time
                                   </p>
-                                  <p className="mt-2 text-sm font-semibold text-slate-800">
+                                  <p className="mt-2 font-bold text-slate-950">
                                     {formatSlotForDisplay(selectedTime)}
                                   </p>
                                 </div>
@@ -453,95 +535,92 @@ const ScheduleModal = ({ isOpen, onClose }) => {
                           onConfirm={handleCreateMeeting}
                         />
                       </div>
-                    ) : (
-                      <div className="h-24 md:h-32 border-2 border-dashed border-slate-100 rounded-2xl flex items-center justify-center text-center">
-                        <p className="text-slate-300 text-xs italic">
-                          Select a date first
-                        </p>
-                      </div>
                     )}
-                  </div>
-                </motion.div>
-              )}
+                  </motion.div>
+                )}
 
-              {step === 3 && (
-                <div className="text-center py-6 md:py-10 space-y-6">
-                  <div className="text-center py-10 space-y-6">
+                {step === 3 && (
+                  <motion.div
+                    key="step3"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="mx-auto flex max-w-md flex-col items-center py-8 text-center"
+                  >
                     {meeting.isPending && (
-                      <div className="flex flex-col items-center space-y-4">
+                      <>
                         <Loader2
+                          size={44}
                           className="animate-spin text-slate-400"
-                          size={40}
                         />
-                        <p className="text-slate-500">Booking your meeting...</p>
-                      </div>
+                        <p className="mt-5 text-sm text-slate-500">
+                          Booking your meeting...
+                        </p>
+                      </>
                     )}
+
                     {!meeting.isPending && meeting.isError && (
-                      <div className="space-y-6">
-                        <div className="w-24 h-24 bg-red-500 rounded-full flex items-center justify-center mx-auto shadow-xl shadow-red-100">
-                          <X size={40} className="text-white" />
+                      <>
+                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50 text-red-600">
+                          <X size={36} />
                         </div>
-                        <h2 className="text-3xl font-black text-slate-900">
-                          Error!
+                        <h2 className="mt-5 text-3xl font-black text-slate-950">
+                          Something went wrong
                         </h2>
-                        <p className="text-slate-500">
+                        <p className="mt-3 text-sm leading-6 text-slate-500">
                           {meeting.error?.response?.data?.message ||
                             "Failed to book meeting. Please try again."}
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                          <Button
-                            type="button"
-                            onClick={() => setStep(1)}
-                            variant="outline"
-                            className="px-8 h-12 rounded-xl border-slate-200 text-slate-600"
-                          >
-                            Back
-                          </Button>
-                        </div>
-                      </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setStep(2)}
+                          className="mt-6 h-11 cursor-pointer rounded-lg border-slate-200 text-slate-600"
+                        >
+                          <ArrowLeft size={15} />
+                          Try Again
+                        </Button>
+                      </>
                     )}
+
                     {!meeting.isPending && !meeting.isError && (
-                      <div className="space-y-6">
-                        <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-xl shadow-emerald-100">
-                          <CheckCircle2 size={40} className="text-white" />
+                      <>
+                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                          <CheckCircle2 size={40} />
                         </div>
-
-                        <div className="space-y-2">
-                          <h2 className="text-3xl font-black text-slate-900">BOOKED!</h2>
-                          <p className="text-slate-500 text-lg">
-                            {selectedDate} at {formatSlotForDisplay(selectedTime)}
+                        <h2 className="mt-5 text-3xl font-black text-slate-950">
+                          You're booked!
+                        </h2>
+                        <p className="mt-2 text-base font-bold text-blue-600">
+                          {selectedDate} at {formatSlotForDisplay(selectedTime)}
+                        </p>
+                        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                          <p className="text-sm leading-6 text-slate-600">
+                            A confirmation has been sent to{" "}
+                            <span className="font-bold text-slate-950">
+                              {userData.email}
+                            </span>
+                            . Open it to add this appointment to your calendar.
                           </p>
                         </div>
-
-                        {/* New Instruction Block */}
-                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 max-w-sm mx-auto">
-                          <p className="text-sm text-slate-600">
-                            We've sent a confirmation to your email. Open it to <strong>add this appointment to your calendar</strong> so you don't miss it!
-                          </p>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                          <Button
-                            type="button"
-                            onClick={resetAndClose}
-                            variant="outline"
-                            className="px-8 h-12 rounded-xl border-slate-200 text-slate-600"
-                          >
-                            Back to Home
-                          </Button>
-                        </div>
-                      </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={resetAndClose}
+                          className="mt-6 h-11 cursor-pointer rounded-lg border-slate-200 text-slate-600"
+                        >
+                          Back to Home
+                        </Button>
+                      </>
                     )}
-                  </div>
-                </div>
-
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         </>
-      )
-      }
-    </AnimatePresence >
+      )}
+    </AnimatePresence>
   );
 };
 

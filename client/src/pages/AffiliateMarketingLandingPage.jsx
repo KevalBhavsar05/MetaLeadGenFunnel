@@ -1,458 +1,556 @@
-import React, { useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { Button } from "../components/ui/button";
-import { Card } from "../components/ui/card";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { NavLink } from "react-router-dom";
 import {
   ArrowRight,
-  TrendingUp,
-  Play,
-  Calendar,
-  Star,
   Award,
+  Calendar,
+  CheckCircle2,
   ExternalLink,
-  Sparkles,
+  MessageSquare,
+  Send,
+  ShieldCheck,
+  Star,
+  TrendingUp,
   User,
+  Users,
 } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
 import ScheduleModal from "@/components/common/ScheduleModal";
 import Profile from "../assets/Profile.jpg";
-import { Link, NavLink } from "react-router-dom";
-/* =======================
-   MAIN PAGE
-======================= */
+import { toast } from "sonner";
+import { useSubmitFeedback } from "@/hooks/useFeedback";
+
+const whatsappLink =
+  "https://wa.me/919876543210?text=Hello%20Sir%2FMadam%2C%20could%20you%20please%20share%20the%20meeting%20link%20for%20the%20session%3F";
+
+const WhatsAppIcon = ({ className = "" }) => (
+  <svg
+    viewBox="0 0 32 32"
+    fill="currentColor"
+    aria-hidden="true"
+    className={className}
+  >
+    <path d="M16.04 3C8.86 3 3.02 8.82 3.02 15.98c0 2.29.6 4.53 1.74 6.5L3 29l6.69-1.75a13.05 13.05 0 0 0 6.35 1.62h.01c7.18 0 13.02-5.82 13.02-12.98C29.07 8.82 23.23 3 16.04 3Zm0 23.67h-.01c-1.9 0-3.77-.51-5.4-1.47l-.39-.23-3.97 1.04 1.06-3.86-.25-.4a10.72 10.72 0 0 1-1.65-5.77c0-5.95 4.86-10.79 10.84-10.79 2.89 0 5.61 1.12 7.66 3.16a10.72 10.72 0 0 1 3.17 7.64c0 5.95-4.86 10.79-10.83 10.79Zm5.94-8.08c-.33-.16-1.93-.95-2.23-1.06-.3-.11-.52-.16-.74.16-.22.33-.85 1.06-1.04 1.28-.19.22-.38.25-.71.08-.33-.16-1.38-.51-2.62-1.62-.97-.86-1.62-1.93-1.81-2.25-.19-.33-.02-.5.14-.66.15-.14.33-.38.49-.57.16-.19.22-.33.33-.55.11-.22.05-.41-.03-.57-.08-.16-.74-1.78-1.01-2.44-.27-.64-.54-.55-.74-.56h-.63c-.22 0-.57.08-.87.41-.3.33-1.14 1.11-1.14 2.71 0 1.6 1.17 3.15 1.33 3.37.16.22 2.31 3.51 5.59 4.92.78.34 1.39.54 1.86.69.78.25 1.49.21 2.05.13.63-.09 1.93-.79 2.2-1.55.27-.76.27-1.41.19-1.55-.08-.14-.3-.22-.63-.38Z" />
+  </svg>
+);
+
+const sessionSteps = [
+  {
+    icon: ShieldCheck,
+    title: "Review",
+    desc: "We understand your goals, current skill level, and where you need the most clarity.",
+  },
+  {
+    icon: Users,
+    title: "Alignment",
+    desc: "We match your direction with suitable programs, tools, workflows, and realistic next steps.",
+  },
+  {
+    icon: CheckCircle2,
+    title: "Action Plan",
+    desc: "You leave with a focused plan for learning, execution, and measurable progress.",
+  },
+];
+
+const stats = [
+  { value: "5L+", label: "Learners impacted" },
+  { value: "20K", label: "Event audience" },
+  { value: "15+", label: "Entrepreneurs" },
+  { value: "1:1", label: "Guidance" },
+];
+
+const testimonials = [
+  {
+    name: "Pragya Singh",
+    text: "IDigitalPreneur is an excellent e-learning platform that delivers great skill development and growth. Over the past 5 months, I have learned valuable skills like public speaking, Instagram growth, and digital marketing. The training is well-structured and the mentorship is incredibly supportive. I highly recommend it to anyone seeking financial independence and skill enhancement",
+  },
+  {
+    name: "Riya Sandhu",
+    text: "Joining iDigitalPreneur has been truly transformative for me.The structured training and constant mentorship helped me build confidence and improve my communication skills.I gained valuable professional skills along with personal growth. Grateful to be part of such a supportive and inspiring community.",
+  },
+  {
+    name: "Dhananjay Chaurasiya",
+    text: "My experience with iDigitalPreneur has been extremely positive. It’s a transparent and 100% legit platform that truly delivers on its promises. The beginner-friendly, well-structured training and strong support system helped me learn digital marketing, ads, public speaking, and more. I highly recommend it to anyone serious about building a successful digital career.",
+  },
+];
+
 const AffiliateMarketingLandingPage = () => {
-  const { scrollY } = useScroll();
-  const background = useTransform(
-    scrollY,
-    [0, 80],
-    ["rgba(255,255,255,0)", "rgba(255,255,255,0.9)"]
-  );
-  const border = useTransform(
-    scrollY,
-    [0, 80],
-    ["rgba(0,0,0,0)", "rgba(0,0,0,0.05)"]
-  );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const submitFeedback = useSubmitFeedback();
+  const [feedback, setFeedback] = useState({
+    name: "",
+    rating: 5,
+    message: "",
+  });
+
+  const handleFeedbackSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      await submitFeedback.mutateAsync(feedback);
+      toast.success("Thank you for sharing your feedback");
+      setFeedback({ name: "", rating: 5, message: "" });
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+        "Failed to submit feedback. Please try again.",
+      );
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-100 selection:text-blue-700 overflow-x-hidden">
-      <motion.nav
-        style={{
-          backgroundColor: background,
-          backdropFilter: "blur(12px)",
-          borderColor: border,
-        }}
-        className="fixed top-0 left-0 right-0 z-50 border-b transition-all h-20 flex items-center"
-      >
-        <div className="max-w-7xl mx-auto w-full px-6 flex justify-between items-center">
-          <div className="flex items-center gap-2 group cursor-pointer">
-            <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <TrendingUp size={18} className="text-white" />
-            </div>
-            <span className="text-xl font-bold text-slate-900 tracking-tight">
+    <div className="min-h-screen overflow-x-hidden bg-white text-slate-950">
+      <nav className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-5 py-4 sm:px-6">
+          <a href="#" className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
+              <TrendingUp size={19} />
+            </span>
+            <span className="text-lg font-black tracking-tight sm:text-xl">
               TalkWith<span className="text-blue-600">Kartik</span>
             </span>
-          </div>
-          <div className="hidden md:flex gap-8 text-sm font-semibold text-slate-500 uppercase tracking-widest">
-            <a href="#schedule" className="hover:text-blue-600 transition">
+          </a>
+
+          <div className="hidden items-center gap-8 text-[11px] font-black uppercase tracking-widest text-slate-500 md:flex">
+            <a href="#session" className="transition hover:text-blue-600">
               Strategy
             </a>
-            <a href="#about" className="hover:text-blue-600 transition">
+            <a href="#about" className="transition hover:text-blue-600">
               Mentor
             </a>
-            <a href="#testimonials" className="hover:text-blue-600 transition">
+            <a href="#testimonials" className="transition hover:text-blue-600">
               Results
             </a>
           </div>
+
           <Button
             onClick={() => setIsModalOpen(true)}
-            className="rounded-full hidden sm:flex bg-blue-600 text-white cursor-pointer hover:bg-blue-700 px-6 font-bold"
+            className="hidden h-11 cursor-pointer rounded-lg bg-blue-600 px-5 font-bold text-white hover:bg-blue-700 sm:flex"
           >
             Book Session
             <ExternalLink size={16} />
           </Button>
         </div>
-      </motion.nav>
-      );
-      <ScheduleModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
-      {/* 1. HERO SECTION & VIDEO */}
-      <section className="relative pt-20 md:pt-20 pb-10 sm:pb-15 px-6">
-        {/* Soft Blue Radial Background */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(37,99,235,0.05)_0%,_transparent_50%)] pointer-events-none" />
+      </nav>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 ">
-            {/* LEFT CONTENT */}
+      <main>
+        <section className="border-b border-slate-200 bg-slate-50 px-5 pb-14 pt-28 sm:px-6 lg:pb-20">
+          <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1fr_0.92fr] lg:gap-16">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-6 lg:space-y-8 text-center lg:text-left"
+              className="max-w-2xl"
             >
-              <h1
-                className="
-        text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl
-        font-black leading-[1] sm:leading-[0.95]
-        tracking-tighter uppercase text-slate-900
-      "
-              >
-                Learn Skills.
-                <br />
-                <span className="text-blue-600">Build Direction.</span> <br />
-                {/* Execute <br />
-                <span className="text-slate-300">With Clarity.</span> */}
-              </h1>
-              {/* 
-              <p className="max-w-xl mx-auto lg:mx-0 text-base sm:text-lg text-slate-600 leading-relaxed">
-                A government-registered EdTech ecosystem focused on practical
-                skill-building, execution clarity, and long-term earning through
-                structured guidance.
-              </p> */}
+              <div className="mb-5 inline-flex items-center gap-2 rounded-lg border border-blue-100 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-widest text-blue-700">
+                <Award size={15} />
+                Guided strategy session
+              </div>
 
-              <Button
-                onClick={() => setIsModalOpen(true)}
-                className="
-          h-14 sm:h-16 px-8 sm:px-10
-          w-full sm:w-auto
-          bg-blue-600 hover:bg-blue-700
-          rounded-2xl text-base sm:text-lg
-          text-white font-bold cursor-pointer
-          shadow-xl shadow-blue-500/20
-          flex items-center justify-center
-        "
-              >
-                Book Session
-                <ArrowRight className="ml-2" />
-              </Button>
+              <h1 className="text-4xl font-black uppercase leading-[1.02] tracking-tight text-slate-950 sm:text-5xl lg:text-7xl">
+                Learn Skills.
+                <span className="block text-blue-600">Build Direction.</span>
+              </h1>
+
+              <p className="mt-6 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">
+                A focused one-on-one session for learners who want practical
+                skill direction, program clarity, and a realistic action plan.
+              </p>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Button
+                  onClick={() => setIsModalOpen(true)}
+                  className="h-13 cursor-pointer rounded-lg bg-blue-600 px-7 text-base font-black text-white hover:bg-blue-700"
+                >
+                  Book Session
+                  <ArrowRight size={18} />
+                </Button>
+              </div>
+
+              {/* <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {stats.map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-lg border border-slate-200 bg-white p-4"
+                  >
+                    <p className="text-2xl font-black text-slate-950">
+                      {item.value}
+                    </p>
+                    <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                      {item.label}
+                    </p>
+                  </div>
+                ))}
+              </div> */}
             </motion.div>
 
-            {/* RIGHT PREVIEW CARD */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="relative group cursor-pointer w-full"
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl shadow-slate-200/70"
             >
-              <div className="absolute -inset-4 bg-blue-500/10 rounded-[2.5rem] blur-2xl group-hover:bg-blue-500/15 transition" />
-              <div className="relative aspect-[4/3] rounded-[2.5rem] bg-slate-100 border border-slate-200 p-3 shadow-2xl">
-                <div className="w-full h-full rounded-[2rem] bg-white overflow-hidden flex flex-col border border-slate-200 shadow-inner">
-                  {/* BODY */}
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="w-full h-full rounded-[1.5rem] overflow-hidden border border-slate-100 bg-black">
-                      <iframe
-                        className="w-full h-full"
-                        src="https://www.youtube.com/embed/fzUBVFjsod8?si=lWVJRC98SSQdzE2I"
-                        title="YouTube video player"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        referrerPolicy="strict-origin-when-cross-origin"
-                        allowFullScreen
-                      />
-                    </div>
+              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Session Preview
+                  </p>
+                  <p className="text-sm font-bold text-slate-900">
+                    Practical roadmap overview
+                  </p>
+                </div>
+                <span className="rounded-md bg-blue-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-blue-700">
+                  Watch
+                </span>
+              </div>
+              <div className="aspect-video bg-slate-950">
+                <iframe
+                  className="h-full w-full"
+                  src="https://www.youtube.com/embed/fzUBVFjsod8?si=lWVJRC98SSQdzE2I"
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        <section id="session" className="px-5 py-16 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-10 max-w-2xl">
+              <p className="text-[11px] font-black uppercase tracking-widest text-blue-600">
+                How it works
+              </p>
+              <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-5xl">
+                A simple session built around clarity.
+              </h2>
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+              <div className="grid gap-5 md:grid-cols-3">
+                {sessionSteps.map((item, index) => {
+                  const Icon = item.icon;
+                  return (
+                    <Card
+                      key={item.title}
+                      className="rounded-lg border-slate-200 bg-white p-6 shadow-sm"
+                    >
+                      <div className="mb-6 flex items-center justify-between">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                          <Icon size={21} />
+                        </span>
+                        <span className="text-xs font-black text-slate-300">
+                          0{index + 1}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-black uppercase tracking-tight text-slate-950">
+                        {item.title}
+                      </h3>
+                      <p className="mt-3 text-sm leading-6 text-slate-500">
+                        {item.desc}
+                      </p>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              <Card className="rounded-lg border-blue-100 bg-blue-600 p-6 text-white shadow-lg shadow-blue-600/20">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/15">
+                  <Calendar size={23} />
+                </div>
+                <h3 className="mt-7 text-2xl font-black uppercase tracking-tight">
+                  Schedule a Call
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-blue-50">
+                  Introductory sessions are limited so each conversation stays
+                  focused, personal, and useful.
+                </p>
+                <Button
+                  onClick={() => setIsModalOpen(true)}
+                  className="mt-7 h-12 w-full cursor-pointer rounded-lg bg-white font-black uppercase text-blue-700 hover:bg-blue-50"
+                >
+                  Schedule Strategy Session
+                </Button>
+                <p className="mt-4 text-xs leading-5 text-blue-100">
+                  Educational and strategic guidance only. Results depend on
+                  individual effort and execution.
+                </p>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="about"
+          className="border-y border-slate-200 bg-slate-50 px-5 py-16 sm:px-6 sm:py-20"
+        >
+          <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14">
+            <div className="relative">
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg shadow-slate-200/60">
+                <img
+                  src={Profile}
+                  alt="Mentor profile"
+                  className="aspect-[4/5] w-full object-cover"
+                />
+              </div>
+              <div className="absolute bottom-4 left-4 right-4 rounded-lg border border-slate-200 bg-white/95 p-4 shadow-lg backdrop-blur">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white">
+                    <Award size={20} />
+                  </span>
+                  <div>
+                    <p className="text-sm font-black uppercase tracking-widest text-slate-950">
+                      Mentor-led learning
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Practical guidance with structured direction.
+                    </p>
                   </div>
                 </div>
               </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-      {/* 2. SCHEDULE & BENEFITS */}
-      <section
-        id="schedule"
-        className="py-10 sm:py-15 px-4 sm:px-6 bg-slate-50"
-      >
-        <div className="max-w-7xl mx-auto">
-          <div
-            className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center 
-                    p-6 sm:p-10 md:p-14 lg:p-20 
-                    rounded-3xl sm:rounded-[3rem] lg:rounded-[4rem] 
-                    bg-white border border-slate-200 shadow-xl shadow-slate-200/50"
-          >
-            {/* LEFT CONTENT */}
-            <div className="space-y-10 sm:space-y-12">
-              <h2
-                className="text-3xl sm:text-4xl md:text-5xl 
-                       font-black uppercase tracking-tighter text-slate-900 leading-tight"
-              >
-                The Learning & Direction <br />
-                <span className="text-blue-600">Session</span>
-              </h2>
-
-              <div className="space-y-6 sm:space-y-8">
-                {[
-                  {
-                    title: "Review",
-                    desc: "We analyze your current goals, experience level, and traffic sources to understand where you are starting from.",
-                  },
-                  {
-                    title: "Alignment",
-                    desc: "We discuss suitable programs, tools, and workflows based on your niche and long-term objectives.",
-                  },
-                  {
-                    title: "Action Plan",
-                    desc: "You leave with a clear, step-by-step plan focused on sustainable growth and measurable next steps.",
-                  },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex gap-4 sm:gap-6 items-start group"
-                  >
-                    <div
-                      className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 
-                              rounded-xl sm:rounded-2xl 
-                              bg-blue-50 border border-blue-100 
-                              flex items-center justify-center 
-                              text-blue-600 font-bold 
-                              group-hover:bg-blue-600 group-hover:text-white transition-all"
-                    >
-                      {i + 1}
-                    </div>
-
-                    <div>
-                      <h4
-                        className="font-bold text-base sm:text-lg md:text-xl 
-                               uppercase tracking-tight text-slate-900"
-                      >
-                        {item.title}
-                      </h4>
-                      <p className="text-slate-500 font-light text-sm mt-1 max-w-md">
-                        {item.desc}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
 
-            {/* RIGHT CARD */}
-            <Card
-              className="p-6 sm:p-8 md:p-10 
-                       bg-slate-50 border-slate-200 
-                       rounded-3xl text-center space-y-6 sm:space-y-8 
-                       shadow-inner"
-            >
-              <div
-                className="p-4 rounded-3xl text-blue-600 flex justify-center items-center 
-                        bg-blue-50 border border-blue-100 
-                        shadow-md shadow-blue-500/10 mx-auto"
-              >
-                <Calendar size={28} className="sm:w-8 sm:h-8" />
-              </div>
-
-              <div className="space-y-2">
-                <h3
-                  className="text-lg sm:text-xl md:text-2xl 
-                         font-bold uppercase tracking-widest text-slate-900"
-                >
-                  Schedule a Call
-                </h3>
-                <p className="text-slate-500 text-xs sm:text-sm px-2">
-                  Introductory sessions are limited to ensure focused,
-                  one-on-one guidance.
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-widest text-blue-600">
+                Company overview
+              </p>
+              <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-5xl">
+                A purpose-driven EdTech ecosystem.
+              </h2>
+              <div className="mt-6 space-y-4 text-base leading-8 text-slate-600">
+                <p>
+                  This government-registered EdTech platform focuses on
+                  practical skill-building, execution clarity, and long-term
+                  learner growth.
+                </p>
+                <p>
+                  Alongside technical skills, mindset development is treated as
+                  a foundation because sustainable progress depends on clarity,
+                  discipline, and consistency.
                 </p>
               </div>
 
-              <Button
-                className="w-full h-14 sm:h-16
-                     bg-blue-600 text-white hover:bg-blue-700 
-                     rounded-2xl sm:text-lg 
-                     font-black uppercase
-                     shadow-lg shadow-blue-500/20
-                     cursor-pointer"
-                onClick={() => setIsModalOpen(true)}
-              >
-                Schedule Strategy Session
-              </Button>
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                <Card className="rounded-lg border-slate-200 bg-white p-6 shadow-sm">
+                  <Users className="mb-4 text-blue-600" size={25} />
+                  <h3 className="text-lg font-black text-slate-950">
+                    Leadership & Credibility
+                  </h3>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">
+                    Trainers include TEDx speakers, bringing real-world
+                    exposure into the learning process.
+                  </p>
+                </Card>
 
-              {/* Compliance Note */}
-              <p className="text-[10px] sm:text-xs text-slate-400 leading-relaxed px-2">
-                This session is educational and strategic in nature. No
-                guarantees or earnings claims are made.
-              </p>
-            </Card>
+                <Card className="rounded-lg border-slate-200 bg-white p-6 shadow-sm">
+                  <TrendingUp className="mb-4 text-blue-600" size={25} />
+                  <h3 className="text-lg font-black text-slate-950">
+                    Impact at Scale
+                  </h3>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">
+                    Over 5 lakh learners have benefited through structured
+                    training, guidance, and events.
+                  </p>
+                </Card>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
-      {/* 3. ABOUT MENTOR & COMPANY */}
-      <section id="about" className="py-10 sm:py-15 px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-5 gap-16 items-center">
-            {/* LEFT : PROFILE IMAGE */}
-            <div className="lg:col-span-2 relative">
-              <div className="relative w-full aspect-[4/5] rounded-[3rem] border border-slate-200 p-2 bg-white shadow-2xl">
-                <div className="w-full h-full rounded-[2.5rem] overflow-hidden">
-                  <img
-                    src={Profile}
-                    alt="Mentor Profile"
-                    className="w-full h-full object-cover grayscale transition duration-700 hover:grayscale-0"
+        </section>
+
+        <section id="testimonials" className="px-5 py-16 sm:px-6 sm:py-20">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-10 max-w-2xl">
+              <p className="text-[11px] font-black uppercase tracking-widest text-blue-600">
+                Learner results
+              </p>
+              <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-5xl">
+                What learners say.
+              </h2>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-3">
+              {testimonials.map((item) => (
+                <Card
+                  key={item.name}
+                  className="flex min-h-[270px] flex-col justify-between rounded-lg border-slate-200 bg-white p-6 shadow-sm"
+                >
+                  <div>
+                    <div className="mb-5 flex gap-1 text-blue-500">
+                      {[...Array(5)].map((_, index) => (
+                        <Star key={index} fill="currentColor" size={15} />
+                      ))}
+                    </div>
+                    <p className="text-base leading-7 text-slate-600">
+                      "{item.text}"
+                    </p>
+                  </div>
+                  <div className="mt-7 flex items-center gap-3 border-t border-slate-100 pt-5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50">
+                      <User size={21} className="text-blue-600" />
+                    </div>
+                    <p className="text-[11px] font-black uppercase tracking-widest text-slate-950">
+                      {item.name}
+                    </p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-t border-slate-200 bg-slate-50 px-5 py-16 sm:px-6 sm:py-20">
+          <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-widest text-blue-600">
+                Feedback
+              </p>
+              <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-5xl">
+                Tell us how the page feels.
+              </h2>
+              <p className="mt-5 max-w-md text-base leading-7 text-slate-600">
+                Your feedback helps us improve the session experience, page
+                clarity, and booking flow for future learners.
+              </p>
+            </div>
+
+            <Card className="rounded-lg border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <form onSubmit={handleFeedbackSubmit} className="space-y-5">
+                <div className="flex items-center gap-3 border-b border-slate-100 pb-5">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                    <MessageSquare size={21} />
+                  </span>
+                  <div>
+                    <h3 className="font-black text-slate-950">
+                      Share Feedback
+                    </h3>
+                    <p className="text-sm text-slate-500">
+                      A quick note is enough.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      value={feedback.name}
+                      onChange={(event) =>
+                        setFeedback({ ...feedback, name: event.target.value })
+                      }
+                      placeholder="Enter your name"
+                      className="h-12 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+                      Rating
+                    </label>
+                    <div className="flex h-12 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <button
+                          key={rating}
+                          type="button"
+                          onClick={() => setFeedback({ ...feedback, rating })}
+                          className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-md transition ${feedback.rating >= rating
+                              ? "text-blue-600"
+                              : "text-slate-300 hover:text-blue-300"
+                            }`}
+                          aria-label={`${rating} star rating`}
+                        >
+                          <Star size={18} fill="currentColor" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+                    Message
+                  </label>
+                  <textarea
+                    required
+                    value={feedback.message}
+                    onChange={(event) =>
+                      setFeedback({ ...feedback, message: event.target.value })
+                    }
+                    placeholder="What should we improve?"
+                    rows={5}
+                    className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                   />
                 </div>
 
-                <div className="absolute -bottom-6 -right-6 p-6 bg-blue-600 rounded-3xl text-white shadow-xl">
-                  <Award size={32} />
-                </div>
-              </div>
-            </div>
-
-            {/* RIGHT : COMPANY CONTENT */}
-            <div className="lg:col-span-3 space-y-12">
-              {/* HEADER */}
-              <div className="space-y-6">
-                <span className="text-blue-600 font-black text-xs uppercase tracking-widest">
-                  Company Overview
-                </span>
-
-                <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 leading-tight">
-                  A Purpose-Driven <br />
-                  <span className="text-blue-600">EdTech Ecosystem</span>
-                </h2>
-
-                <p className="text-lg text-slate-600 leading-relaxed">
-                  This is a government-registered EdTech platform built with a
-                  clear purpose and long-term vision. The focus is on teaching
-                  high-demand, market-relevant skills with strong emphasis on
-                  practical execution rather than unnecessary theory.
-                </p>
-
-                <p className="text-lg text-slate-600 leading-relaxed">
-                  Alongside technical skill-building, mindset development is
-                  treated as a foundation — recognizing that sustainable earning
-                  depends on clarity, discipline, and consistency.
-                </p>
-              </div>
-
-              {/* INFO CARDS */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="p-8 rounded-3xl bg-slate-50 border border-slate-200">
-                  <h3 className="text-xl font-bold text-slate-900 mb-3">
-                    Leadership & Credibility
-                  </h3>
-                  <p className="text-slate-600 leading-relaxed">
-                    Trainers associated with the platform include TEDx speakers,
-                    bringing real-world exposure into the learning process. The
-                    founder,{" "}
-                    <span className="font-semibold text-slate-900">
-                      Ashutosh Pratishat
-                    </span>
-                    , has shared the stage twice at TEDx and once at Josh Talks.
+                <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs leading-5 text-slate-500">
+                    Feedback is used only to improve the page and session
+                    experience.
                   </p>
+                  <Button
+                    type="submit"
+                    disabled={submitFeedback.isPending}
+                    className="h-11 cursor-pointer rounded-lg bg-blue-600 px-6 font-black text-white hover:bg-blue-700"
+                  >
+                    {submitFeedback.isPending ? "Submitting..." : "Submit Feedback"}
+                    <Send size={15} />
+                  </Button>
                 </div>
-
-                <div className="p-8 rounded-3xl bg-slate-50 border border-slate-200">
-                  <h3 className="text-xl font-bold text-slate-900 mb-3">
-                    Impact at Scale
-                  </h3>
-                  <p className="text-slate-600 leading-relaxed">
-                    Over{" "}
-                    <span className="font-semibold text-slate-900">
-                      5 lakh+
-                    </span>{" "}
-                    individuals have already benefited. In 2023, the{" "}
-                    <span className="font-semibold">Ashtitva</span> mega-event
-                    brought together 15+ entrepreneurs and 20,000 learners on
-                    one stage.
-                  </p>
-                </div>
-              </div>
-
-              {/* STATS */}
-              {/* <div className="grid grid-cols-3 gap-6 pt-6">
-                                <div className="p-6 rounded-3xl bg-white border border-slate-200 text-center">
-                                    <p className="text-3xl font-black text-blue-600">5L+</p>
-                                    <p className="text-xs uppercase tracking-widest text-slate-400 mt-1">
-                                        Lives Impacted
-                                    </p>
-                                </div>
-
-                                <div className="p-6 rounded-3xl bg-white border border-slate-200 text-center">
-                                    <p className="text-3xl font-black text-slate-900">15+</p>
-                                    <p className="text-xs uppercase tracking-widest text-slate-400 mt-1">
-                                        Entrepreneurs
-                                    </p>
-                                </div>
-
-                                <div className="p-6 rounded-3xl bg-white border border-slate-200 text-center">
-                                    <p className="text-3xl font-black text-slate-900">20K</p>
-                                    <p className="text-xs uppercase tracking-widest text-slate-400 mt-1">
-                                        Learners
-                                    </p>
-                                </div>
-                            </div> */}
-            </div>
+              </form>
+            </Card>
           </div>
-        </div>
-      </section>
-      {/* 4. TESTIMONIALS */}
-      <section id="testimonials" className="py-10 sm:py-15 px-6 bg-slate-50/50">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Pragya Singh",
-                res: "IDigitalPreneur is an excellent e-learning platform that delivers great skill development and growth. Over the past 5 months, I have learned valuable skills like public speaking, Instagram growth, and digital marketing. The training is well-structured and the mentorship is incredibly supportive. I highly recommend it to anyone seeking financial independence and skill enhancement",
-              },
-              {
-                name: "Riya Sandhu",
-                res: "Joining iDigitalPreneur has been truly transformative for me.The structured training and constant mentorship helped me build confidence and improve my communication skills.I gained valuable professional skills along with personal growth. Grateful to be part of such a supportive and inspiring community.",
-              },
-              {
-                name: "Dhananjay Chaurasiya",
-                res: "My experience with iDigitalPreneur has been extremely positive. It’s a transparent and 100% legit platform that truly delivers on its promises. The beginner-friendly, well-structured training and strong support system helped me learn digital marketing, ads, public speaking, and more. I highly recommend it to anyone serious about building a successful digital career.",
-              },
-            ].map((t, i) => (
-              <Card
-                key={i}
-                className="p-10 flex flex-col justify-between bg-white border-slate-200 rounded-[3rem] space-y-6 hover:shadow-2xl hover:shadow-blue-500/10 transition duration-300"
-              >
-                <div className="flex flex-col gap-7 text-blue-600">
-                  <div className="flex gap-2 ml-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} fill="currentColor" size={12} />
-                    ))}
-                  </div>
-                  <p className="text-lg text-slate-600 font-medium leading-relaxed italic">
-                    "{t.res}"
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 flex justify-center items-center">
-                    <User size={25} className="text-slate-400" />
-                  </div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">
-                    {t.name}
-                  </p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-      {/* 5. FOOTER */}
-      <footer className="py-20 px-6 bg-white border-t border-slate-100">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
-          <div className="flex items-center gap-2">
-            <TrendingUp size={20} className="text-blue-600" />
-            <span className="text-xl font-bold text-slate-900 tracking-tighter">
-              TalkWith<span className="text-blue-600">Kartik</span>
+        </section>
+      </main>
+
+      <footer className="border-t border-slate-200 bg-slate-950 px-5 py-10 text-white sm:px-6">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 text-center md:flex-row md:text-left">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
+              <TrendingUp size={19} />
+            </span>
+            <span className="text-xl font-black tracking-tight">
+              TalkWith<span className="text-blue-400">Kartik</span>
             </span>
           </div>
-          <p className="text-[10px] text-slate-400 uppercase tracking-widest text-center max-w-xl">
-            This platform provides education, mentorship, and skill-based
-            guidance. Outcomes depend on individual effort, discipline, and
-            execution.
+
+          <p className="max-w-xl text-xs font-medium uppercase leading-6 tracking-widest text-slate-400">
+            Education, mentorship, and skill-based guidance. Outcomes depend on
+            individual effort, discipline, and execution.
           </p>
 
-          <div className="flex gap-8 text-[10px] font-black uppercase tracking-widest text-slate-500">
-            <NavLink to={'/privacy-policy'} className="hover:text-blue-600 transition">
+          <div className="flex gap-7 text-[11px] font-black uppercase tracking-widest text-slate-400">
+            <NavLink to="/privacy-policy" className="transition hover:text-white">
               Privacy
             </NavLink>
-            <NavLink to={'/term-of-service'} className="hover:text-blue-600 transition">
+            <NavLink to="/term-of-service" className="transition hover:text-white">
               Terms
             </NavLink>
           </div>
         </div>
       </footer>
+
+      <a
+        href={whatsappLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat on WhatsApp"
+        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl shadow-emerald-500/30 transition hover:-translate-y-1 hover:bg-[#1fbd5a] focus:outline-none focus:ring-4 focus:ring-emerald-200"
+      >
+        <WhatsAppIcon className="h-8 w-8" />
+      </a>
+
+      <ScheduleModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };
 
 export default AffiliateMarketingLandingPage;
+
