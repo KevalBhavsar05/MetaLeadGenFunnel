@@ -143,39 +143,39 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
     const threeHourDelay = meetingTime - Date.now() - 3 * 60 * 60 * 1000;
     const oneHourDelay = meetingTime - Date.now() - 1 * 60 * 60 * 1000;
 
-    // if (threeHourDelay > 0) {
-    //   await emailQueue.add(
-    //     "meeting-reminder",
-    //     {
-    //       meetingId: meeting._id.toString(),
-    //       userId: user._id.toString(),
-    //       reminderType: "Meeting Reminder (3 hours before)",
-    //     },
-    //     {
-    //       delay: threeHourDelay,
-    //       jobId: `meeting-${meeting._id}-3h`,
-    //       removeOnComplete: true,
-    //       removeOnFail: true,
-    //     },
-    //   );
-    // }
+    if (threeHourDelay > 0) {
+      await emailQueue.add(
+        "meeting-reminder",
+        {
+          meetingId: meeting._id.toString(),
+          userId: user._id.toString(),
+          reminderType: "Meeting Reminder (3 hours before)",
+        },
+        {
+          delay: threeHourDelay,
+          jobId: `meeting-${meeting._id}-3h`,
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      );
+    }
 
-    // if (oneHourDelay > 0) {
-    //   await emailQueue.add(
-    //     "meeting-reminder",
-    //     {
-    //       meetingId: meeting._id.toString(),
-    //       userId: user._id.toString(),
-    //       reminderType: "Meeting Reminder (1 hour before)",
-    //     },
-    //     {
-    //       delay: oneHourDelay,
-    //       jobId: `meeting-${meeting._id}-1h`,
-    //       removeOnComplete: true,
-    //       removeOnFail: true,
-    //     },
-    //   );
-    // }
+    if (oneHourDelay > 0) {
+      await emailQueue.add(
+        "meeting-reminder",
+        {
+          meetingId: meeting._id.toString(),
+          userId: user._id.toString(),
+          reminderType: "Meeting Reminder (1 hour before)",
+        },
+        {
+          delay: oneHourDelay,
+          jobId: `meeting-${meeting._id}-1h`,
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      );
+    }
 
     return res.status(201).json({
       success: true,
