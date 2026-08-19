@@ -9,16 +9,24 @@
   "scripts": {
     "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "worker": "node src/workers/emailWorker.js"
   },
   "dependencies": {
+    "@bull-board/api": "^6.20.6",
+    "@bull-board/express": "^6.20.6",
+    "@google-apps/meet": "^0.8.0",
+    "@google-cloud/local-auth": "^2.1.0",
+    "@upstash/redis": "^1.38.2",
     "axios": "^1.13.4",
     "bcrypt": "^6.0.0",
+    "bullmq": "^5.58.5",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "googleapis": "^169.0.0",
+    "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "md5": "^2.3.0",
     "mongoose": "^9.0.2",
@@ -26,6 +34,7 @@
     "nodemailer": "^7.0.11",
     "nodemon": "^3.1.11",
     "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0"
+    "passport-google-oauth20": "^2.0.0",
+    "redis": "^5.12.1"
   }
 }

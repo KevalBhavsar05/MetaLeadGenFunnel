@@ -2,12 +2,23 @@ import { google } from "googleapis";
 import dotenv from "dotenv";
 dotenv.config();
 
-const redirectUri = `${process.env.BACKEND_URL || "http://localhost:5000"}/auth/google/callback`;
+const SCOPES = ["https://www.googleapis.com/auth/calendar"];
 
-console.error(`[GoogleConfig] OAuth2 Redirect URI: ${redirectUri}`);
+export function createOAuthClient() {
+  return new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI,
+  );
+}
 
-export const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  redirectUri
-);
+export function getGoogleAuthUrl() {
+  const oauth2Client = createOAuthClient();
+
+  return oauth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: SCOPES,
+    include_granted_scopes: true,
+    prompt: "consent",
+  });
+}

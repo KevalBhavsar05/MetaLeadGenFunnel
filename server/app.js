@@ -7,9 +7,11 @@ import cookieParser from "cookie-parser";
 import connectDB from "./config/config.js";
 import slotRoutes from "./src/routes/slot.routes.js";
 import meetingRoutes from "./src/routes/meeting.routes.js";
+import feedbackRoutes from "./src/routes/feedback.routes.js";
 import googleAuthRoutes from "./src/routes/googleAuth.routes.js";
 import adminAuthRoutes from "./src/routes/adminAuth.routes.js";
-// import "./src/services/cron.service.js";
+import userRoutes from "./src/routes/user.routes.js";
+import "./src/workers/emailWorker.js";
 
 // Verify critical env vars are loaded
 if (!process.env.FRONTEND_URL) {
@@ -47,8 +49,13 @@ app.get("/", (req, res) => {
 
 app.use("/api/slots", slotRoutes);
 app.use("/api/meetings", meetingRoutes);
-app.use("/auth", googleAuthRoutes);
+app.use("/api/feedback", feedbackRoutes);
+app.use("/api/auth", googleAuthRoutes);
 app.use("/api/adminAuth", adminAuthRoutes);
+app.use("/api/users", userRoutes);
+
+// app.use("/api/admin/queues", queueMonitorRoutes);
+
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

@@ -1,6 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config();
 import { google } from "googleapis";
+import { createOAuthClient } from "../../config/googleConfig.js";
 import User from "../models/user.model.js";
-import { oauth2Client } from "../../config/googleConfig.js";
 
 export const createGoogleMeet = async ({
   summary,
@@ -16,14 +18,15 @@ export const createGoogleMeet = async ({
     throw new Error("Google Calendar not connected");
   }
 
+  const client = createOAuthClient();
   // 2️⃣ Set credentials
-  oauth2Client.setCredentials({
+  client.setCredentials({
     refresh_token: admin.googleRefreshToken,
   });
 
   const calendar = google.calendar({
     version: "v3",
-    auth: oauth2Client,
+    auth: client,
   });
 
   // 3️⃣ Create event with Google Meet
@@ -41,20 +44,32 @@ export const createGoogleMeet = async ({
     attendees: [{ email: attendeeEmail }],
     conferenceData: {
       createRequest: {
-        requestId: Date.now().toString(),
+        requestId: crypto.randomUUID(),
+        conferenceSolutionKey: {
+          type: "hangoutsMeet",
+        },
       },
     },
   };
 
   const response = await calendar.events.insert({
     calendarId: "primary",
-    resource: event,
     conferenceDataVersion: 1,
     sendUpdates: "all",
+    requestBody: event,
   });
 
+  const meetLink = response.data.conferenceData?.entryPoints?.find(
+    (entry) => entry.entryPointType === "video",
+  )?.uri;
+
+  if (!meetLink) {
+    throw new Error("Google Meet link was not generated");
+  }
+
   return {
-    meetLink: response.data.hangoutLink,
-    startLink: response.data.htmlLink,
+    eventId: response.data.id,
+    meetLink,
+    calendarLink: response.data.htmlLink,
   };
 };

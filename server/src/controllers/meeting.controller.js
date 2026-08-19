@@ -1,14 +1,13 @@
+import dotenv from "dotenv";
+dotenv.config();
 import User from "../models/user.model.js";
 import Meeting from "../models/meetings.models.js";
 import { createZoomMeeting } from "../services/zoom.service.js";
-// import { google } from "googleapis";
-// import { oauth2Client } from "../../config/googleConfig.js";
-import dotenv from "dotenv";
 import { createGoogleMeet } from "../services/googleMeet.service.js";
-import transporter from "../../config/nodemailer.js";
-import { meetingReminderMailBody } from "../utils/mailBody.js";
 import axios from "axios";
-dotenv.config();
+import { meetingReminderMailBody } from "../utils/mailBody.js";
+import { emailQueue } from "../queues/emailQueue.js";
+import { sendMail } from "../services/emailService.js";
 
 export const createMeetingWithZoom = async (req, res) => {
   try {
@@ -89,7 +88,7 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
         message: "You have already booked a meeting on this date",
       });
     }
-    
+
     // 2️⃣ Prevent double booking
     const exists = await Meeting.findOne({
       date: new Date(date),
@@ -109,9 +108,9 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
     const endDateTime = new Date(startDateTime.getTime() + 30 * 60 * 1000);
 
     // 4️⃣ Create Google Meet
-    const { meetLink, startLink } = await createGoogleMeet({
-      summary: `Consultation`,
-      description: "Meeting scheduled",
+    const { meetLink, calendarLink } = await createGoogleMeet({
+      summary: "Meeting with Kartik",
+      description: "Meeting scheduled through TalkWithKartik",
       startTime: startDateTime.toISOString(),
       endTime: endDateTime.toISOString(),
       attendeeEmail: email,
@@ -123,17 +122,66 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
       date: new Date(date),
       slotTime,
       meetingLink: meetLink,
-      meetingStartLink: startLink,
+      meetingStartLink: calendarLink,
     });
 
-    const mailBody = meetingReminderMailBody(name, date, slotTime, meetLink);
+    // 6️⃣ Send confirmation mail
+    const mailBody = meetingReminderMailBody(
+      user.name,
+      date,
+      slotTime,
+      meetLink,
+    );
 
-    const sendMail = await axios.post(`${process.env.MAILER_SERVICE_URL}`, {
-      email,
-      subject: "Meeting Scheduled - Reminder",
-      mailBody,
+    await sendMail({
+      userEmail: email,
+      subject: "Meeting Confirmation",
+      mailBody: mailBody,
     });
-    return res.status(201).json({ success: true, meeting });
+
+    const meetingTime = startDateTime.getTime();
+    const threeHourDelay = meetingTime - Date.now() - 3 * 60 * 60 * 1000;
+    const oneHourDelay = meetingTime - Date.now() - 1 * 60 * 60 * 1000;
+
+    // if (threeHourDelay > 0) {
+    //   await emailQueue.add(
+    //     "meeting-reminder",
+    //     {
+    //       meetingId: meeting._id.toString(),
+    //       userId: user._id.toString(),
+    //       reminderType: "Meeting Reminder (3 hours before)",
+    //     },
+    //     {
+    //       delay: threeHourDelay,
+    //       jobId: `meeting-${meeting._id}-3h`,
+    //       removeOnComplete: true,
+    //       removeOnFail: true,
+    //     },
+    //   );
+    // }
+
+    // if (oneHourDelay > 0) {
+    //   await emailQueue.add(
+    //     "meeting-reminder",
+    //     {
+    //       meetingId: meeting._id.toString(),
+    //       userId: user._id.toString(),
+    //       reminderType: "Meeting Reminder (1 hour before)",
+    //     },
+    //     {
+    //       delay: oneHourDelay,
+    //       jobId: `meeting-${meeting._id}-1h`,
+    //       removeOnComplete: true,
+    //       removeOnFail: true,
+    //     },
+    //   );
+    // }
+
+    return res.status(201).json({
+      success: true,
+      meeting,
+      message: "Meeting created successfully",
+    });
   } catch (error) {
     console.error("Schedule meeting error:", error);
     return res.status(500).json({
@@ -144,10 +192,31 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
   }
 };
 
-export const meetingReminder = async (meeting) => {
+export const cancelMeeting = async (req, res) => {
   try {
+    const { meetingId } = req.params;
+    const meeting = await Meeting.findById(meetingId).populate("userId");
+    if (!meeting) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Meeting not found" });
+    }
+    meeting.status = "cancelled";
+    meeting.feedback = req.body.feedback || "";
+    await meeting.save();
+
+    // Redis/BullMQ reminders are disabled for now.
+    try {
+      await removeMeetingMailJobs(meetingId);
+    } catch (queueError) {
+      console.error("Error removing meeting mail jobs:", queueError);
+    }
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Meeting cancelled" });
   } catch (error) {
-    console.error("Meeting reminder error:", error);
+    console.error("Error cancelling meeting:", error);
     return res.status(500).json({ success: false, message: "Server Error" });
   }
 };

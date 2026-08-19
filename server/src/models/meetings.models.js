@@ -22,7 +22,7 @@ const MeetingSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  oneDayReminderSent: {
+  threeHourReminderSent: {
     type: Boolean,
     default: false,
   },
@@ -34,6 +34,9 @@ const MeetingSchema = new mongoose.Schema({
     type: String,
     enum: ["pending", "confirmed", "cancelled"],
     default: "confirmed",
+  },
+  feedback: {
+    type: String,
   },
   createdAt: { type: Date, default: Date.now },
 });
