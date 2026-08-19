@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { useSubmitFeedback } from "@/hooks/useFeedback";
 
 const whatsappLink =
-  "https://wa.me/919876543210?text=Hello%20Sir%2FMadam%2C%20could%20you%20please%20share%20the%20meeting%20link%20for%20the%20session%3F";
+  "https://wa.me/917777944410g?text=Hello%20Sir%2FMadam%2C%20could%20you%20please%20share%20the%20meeting%20link%20for%20the%20session%3F";
 
 const WhatsAppIcon = ({ className = "" }) => (
   <svg
