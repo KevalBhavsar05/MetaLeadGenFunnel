@@ -1,4 +1,5 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config();
 import { Worker } from "bullmq";
 import { redisConnection } from "../../config/redis.js";
 import {
@@ -26,7 +27,8 @@ const worker = new Worker(
     }
 
     if (role === "admin") {
-      const { userName, userEmail, userPhone, date, slotTime, meetingLink } = job.data;
+      const { userName, userEmail, userPhone, date, slotTime, meetingLink } =
+        job.data;
       const adminMailBody = adminMeetingBookingMailBody(
         userName,
         userEmail,
@@ -37,7 +39,7 @@ const worker = new Worker(
       );
 
       await sendMail({
-        userEmail: process.env.ADMIN_EMAIL,
+        userEmail: "kushalbardoliwala96@gmail.com",
         subject: `New Meeting Booked - ${userName}`,
         mailBody: adminMailBody,
       });

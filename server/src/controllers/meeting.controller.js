@@ -162,6 +162,7 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
       role: "admin",
       meetingId: meeting._id.toString(),
     });
+
     // await sendMail({
     //   userEmail: process.env.ADMIN_EMAIL,
     //   subject: `New Meeting Booked - ${name}`,
@@ -171,7 +172,7 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
     const meetingTime = startDateTime.getTime();
     const threeHourDelay = meetingTime - Date.now() - 3 * 60 * 60 * 1000;
     const oneHourDelay = meetingTime - Date.now() - 1 * 60 * 60 * 1000;
-
+    const tenminuteDelay = meetingTime - Date.now() - 10 * 60 * 1000;
     if (threeHourDelay > 0) {
       await emailQueue.add(
         "meeting-reminder",
@@ -202,6 +203,24 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
         {
           delay: oneHourDelay,
           jobId: `meeting-${meeting._id}-1h`,
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      );
+    }
+
+    if (tenminuteDelay > 0) {
+      await emailQueue.add(
+        "meeting-reminder",
+        {
+          meetingId: meeting._id.toString(),
+          userId: user._id.toString(),
+          reminderType: "Meeting Reminder (10 minutes before)",
+          role: "user",
+        },
+        {
+          delay: tenminuteDelay,
+          jobId: `meeting-${meeting._id}-10m`,
           removeOnComplete: true,
           removeOnFail: true,
         },
