@@ -87,7 +87,7 @@ export const googleAdminCallback = async (req, res) => {
       .cookie("adminToken", adminToken, {
         httpOnly: true,
         secure: isProduction,
-        sameSite: isProduction ? "None" : "Lax",
+        sameSite: isProduction ? "None" : undefined,
         partitioned: isProduction,
         path: "/",
         maxAge: 24 * 60 * 60 * 1000,
