@@ -39,7 +39,7 @@ const worker = new Worker(
       );
 
       await sendMail({
-        userEmail: "kushalbardoliwala96@gmail.com",
+        userEmail: process.env.ADMIN_EMAIL,
         subject: `New Meeting Booked - ${userName}`,
         mailBody: adminMailBody,
       });

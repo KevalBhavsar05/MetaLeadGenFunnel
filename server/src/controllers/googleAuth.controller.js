@@ -1,15 +1,29 @@
+import dotenv from "dotenv";
+dotenv.config();
+import jwt from "jsonwebtoken";
+import User from "../models/user.model.js";
+
 import {
   getGoogleAuthUrl,
   createOAuthClient,
 } from "../../config/googleConfig.js";
-import User from "../models/user.model.js";
 
-export const googleAuth = (req, res) => {
-  const url = getGoogleAuthUrl();
-  res.redirect(url);
+export const googleAdminLogin = (req, res) => {
+  try {
+    const url = getGoogleAuthUrl();
+
+    return res.redirect(url);
+  } catch (error) {
+    console.error("Google login error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to start Google login",
+    });
+  }
 };
 
-export const googleCallback = async (req, res) => {
+export const googleAdminCallback = async (req, res) => {
   try {
     const { code } = req.query;
 
@@ -18,31 +32,97 @@ export const googleCallback = async (req, res) => {
     }
 
     const client = createOAuthClient();
+
     const { tokens } = await client.getToken(code);
 
-    if (!tokens.refresh_token) {
-      return res
-        .status(400)
-        .send("Google already connected. Re-consent required.");
+    client.setCredentials(tokens);
+
+    const { data } = await client.request({
+      url: "https://openidconnect.googleapis.com/v1/userinfo",
+    });
+
+    const googleEmail = data.email;
+
+    if (googleEmail !== process.env.ADMIN_EMAIL) {
+      return res.status(403).send("Unauthorized Google account");
     }
 
-    // 🔐 SAVE ADMIN TOKENS
-    let adminUser = await User.findOneAndUpdate(
-      { email: process.env.ADMIN_EMAIL }, // admin user
+    const updateData = {
+      email: googleEmail,
+    };
+
+    if (tokens.access_token) {
+      updateData.googleAccessToken = tokens.access_token;
+    }
+
+    if (tokens.refresh_token) {
+      updateData.googleRefreshToken = tokens.refresh_token;
+    }
+
+    await User.findOneAndUpdate(
       {
-        googleRefreshToken: tokens.refresh_token,
-        googleAccessToken: tokens.access_token,
+        email: process.env.ADMIN_EMAIL,
       },
-      { upsert: true, returnDocument: true },
+      updateData,
+      {
+        upsert: true,
+        returnDocument: true,
+      },
     );
 
-    // const env = process.env.NODE_ENV;
-    const redirectUrl = `${process.env.FRONTEND_URL}/admin/dashboard?google=success`;
-    // console.log(redirectUrl);
+    const adminToken = jwt.sign(
+      {
+        email: googleEmail,
+        role: "admin",
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "24h",
+      },
+    );
 
-    return res.redirect(redirectUrl);
+    const isProduction = process.env.NODE_ENV === "production";
+
+    return res
+      .cookie("adminToken", adminToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "None" : "Lax",
+        partitioned: isProduction,
+        path: "/",
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .redirect(`${process.env.FRONTEND_URL}/admin/dashboard?google=success`);
   } catch (error) {
-    console.error("Google callback error:", error);
-    res.status(500).send("Google authentication failed");
+    console.error("Google callback error:", error.response?.data || error);
+
+    return res.status(500).send("Google authentication failed");
+  }
+};
+
+export const logoutAdmin = (req, res) => {
+  try {
+    const isProduction = process.env.NODE_ENV === "production";
+
+    return res
+      .clearCookie("adminToken", {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "None" : "Lax",
+        partitioned: isProduction,
+        path: "/",
+      })
+      .status(200)
+      .json({
+        success: true,
+        message: "Admin logged out successfully",
+      });
+  } catch (error) {
+    console.error("Logout error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };

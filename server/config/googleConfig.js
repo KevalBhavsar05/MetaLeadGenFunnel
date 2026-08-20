@@ -2,7 +2,12 @@ import { google } from "googleapis";
 import dotenv from "dotenv";
 dotenv.config();
 
-const SCOPES = ["https://www.googleapis.com/auth/calendar"];
+const SCOPES = [
+  "openid",
+  "email",
+  "profile",
+  "https://www.googleapis.com/auth/calendar",
+];
 
 export function createOAuthClient() {
   return new google.auth.OAuth2(
