@@ -1,7 +1,10 @@
 import "dotenv/config";
 import { Worker } from "bullmq";
 import { redisConnection } from "../../config/redis.js";
-import { meetingReminderMailBody } from "../utils/mailBody.js";
+import {
+  adminMeetingBookingMailBody,
+  meetingReminderMailBody,
+} from "../utils/mailBody.js";
 import { sendMail } from "../services/emailService.js";
 import Meeting from "../models/meetings.models.js";
 import User from "../models/user.model.js";
@@ -10,7 +13,7 @@ const worker = new Worker(
   "emailQueue",
 
   async (job) => {
-    const { meetingId, reminderType } = job.data;
+    const { meetingId, reminderType, role } = job.data;
     const meeting = await Meeting.findById(meetingId);
 
     if (!meeting) {
@@ -22,25 +25,43 @@ const worker = new Worker(
       return;
     }
 
-    const user = await User.findById(meeting.userId);
+    if (role === "admin") {
+      const { userName, userEmail, userPhone, date, slotTime, meetingLink } = job.data;
+      const adminMailBody = adminMeetingBookingMailBody(
+        userName,
+        userEmail,
+        userPhone,
+        date,
+        slotTime,
+        meetingLink,
+      );
 
-    if (!user) {
-      throw new Error("User not found");
+      await sendMail({
+        userEmail: process.env.ADMIN_EMAIL,
+        subject: `New Meeting Booked - ${userName}`,
+        mailBody: adminMailBody,
+      });
+    } else {
+      const user = await User.findById(meeting.userId);
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const mailBody = meetingReminderMailBody(
+        user.name,
+        meeting.date,
+        meeting.slotTime,
+        meeting.meetingLink,
+        reminderType,
+      );
+
+      await sendMail({
+        userEmail: user.email,
+        subject: `${reminderType} Reminder`,
+        mailBody,
+      });
     }
-
-    const mailBody = meetingReminderMailBody(
-      user.name,
-      meeting.date,
-      meeting.slotTime,
-      meeting.meetingLink,
-      reminderType,
-    );
-
-    await sendMail({
-      userEmail: user.email,
-      subject: `${reminderType} Reminder`,
-      mailBody,
-    });
   },
 
   {

@@ -5,7 +5,10 @@ import Meeting from "../models/meetings.models.js";
 import { createZoomMeeting } from "../services/zoom.service.js";
 import { createGoogleMeet } from "../services/googleMeet.service.js";
 import axios from "axios";
-import { meetingReminderMailBody } from "../utils/mailBody.js";
+import {
+  adminMeetingBookingMailBody,
+  meetingReminderMailBody,
+} from "../utils/mailBody.js";
 import { emailQueue } from "../queues/emailQueue.js";
 import { sendMail } from "../services/emailService.js";
 
@@ -72,8 +75,13 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
 
     // 1️⃣ Find or create attendee
     let user = await User.findOne({ email });
+
     if (!user) {
-      user = await User.create({ name, email, phone });
+      user = await User.create({
+        name,
+        email,
+        phone,
+      });
     }
 
     // Find that user has booked a meeting on the same date for other slot
@@ -126,18 +134,39 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
     });
 
     // 6️⃣ Send confirmation mail
-    const mailBody = meetingReminderMailBody(
-      user.name,
+    // Email to user
+    const mailBody = meetingReminderMailBody(name, date, slotTime, meetLink);
+
+    // await sendMail({
+    //   userEmail: email,
+    //   subject: "Meeting Confirmation",
+    //   mailBody: mailBody,
+    // });
+
+    await emailQueue.add("meeting-confirmation", {
+      meetingId: meeting._id.toString(),
+      userId: user._id.toString(),
+      reminderType: "Meeting Confirmation",
+      role: "user",
+    });
+
+    // Email to admin
+    await emailQueue.add("new-meeting-booking", {
+      userName: name,
+      userEmail: email,
+      userPhone: phone,
       date,
       slotTime,
-      meetLink,
-    );
-
-    await sendMail({
-      userEmail: email,
-      subject: "Meeting Confirmation",
-      mailBody: mailBody,
+      meetingLink: meetLink,
+      reminderType: "New Meeting Booking",
+      role: "admin",
+      meetingId: meeting._id.toString(),
     });
+    // await sendMail({
+    //   userEmail: process.env.ADMIN_EMAIL,
+    //   subject: `New Meeting Booked - ${name}`,
+    //   mailBody: adminMailBody,
+    // });
 
     const meetingTime = startDateTime.getTime();
     const threeHourDelay = meetingTime - Date.now() - 3 * 60 * 60 * 1000;
@@ -150,6 +179,7 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
           meetingId: meeting._id.toString(),
           userId: user._id.toString(),
           reminderType: "Meeting Reminder (3 hours before)",
+          role: "user",
         },
         {
           delay: threeHourDelay,
@@ -167,6 +197,7 @@ export const createMeetingWithGoogleMeet = async (req, res) => {
           meetingId: meeting._id.toString(),
           userId: user._id.toString(),
           reminderType: "Meeting Reminder (1 hour before)",
+          role: "user",
         },
         {
           delay: oneHourDelay,

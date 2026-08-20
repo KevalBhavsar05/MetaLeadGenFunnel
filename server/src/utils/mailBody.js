@@ -153,3 +153,209 @@ export const meetingReminderMailBody = (
     </html>
   `;
 };
+
+export const adminMeetingBookingMailBody = (
+  userName,
+  userEmail,
+  userPhone,
+  date,
+  slotTime,
+  meetingLink,
+) => {
+  return `
+    <html>
+      <body style="
+        margin: 0;
+        padding: 0;
+        background-color: #f4f7fb;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #333333;
+      ">
+        <div style="
+          max-width: 600px;
+          margin: 40px auto;
+          background-color: #ffffff;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        ">
+
+          <!-- Header -->
+          <div style="
+            background-color: #2563eb;
+            padding: 24px;
+            text-align: center;
+          ">
+            <h1 style="
+              margin: 0;
+              color: #ffffff;
+              font-size: 24px;
+            ">
+              New Meeting Booked
+            </h1>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 32px;">
+
+            <p style="
+              font-size: 16px;
+              margin-top: 0;
+            ">
+              Hello Admin,
+            </p>
+
+            <p style="
+              font-size: 15px;
+              line-height: 1.6;
+              color: #555555;
+            ">
+              A new meeting has been booked. Here are the meeting and user
+              details:
+            </p>
+
+            <!-- User Details -->
+            <div style="
+              margin: 24px 0;
+              padding: 20px;
+              background-color: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 8px;
+            ">
+
+              <h3 style="
+                margin: 0 0 16px;
+                color: #2563eb;
+                font-size: 17px;
+              ">
+                User Details
+              </h3>
+
+              <p style="margin: 0 0 10px;">
+                <strong>Name:</strong> ${userName}
+              </p>
+
+              <p style="margin: 0 0 10px;">
+                <strong>Email:</strong> ${userEmail}
+              </p>
+
+              <p style="margin: 0;">
+                <strong>Phone:</strong> ${userPhone || "Not provided"}
+              </p>
+
+            </div>
+
+            <!-- Meeting Details -->
+            <div style="
+              margin: 24px 0;
+              padding: 20px;
+              background-color: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 8px;
+            ">
+
+              <h3 style="
+                margin: 0 0 16px;
+                color: #2563eb;
+                font-size: 17px;
+              ">
+                Meeting Details
+              </h3>
+
+              <p style="margin: 0 0 10px;">
+                <strong>Date:</strong> ${date}
+              </p>
+
+              <p style="margin: 0;">
+                <strong>Time:</strong> ${slotTime}
+              </p>
+
+            </div>
+
+            <p style="
+              font-size: 15px;
+              line-height: 1.6;
+              color: #555555;
+            ">
+              You can join the meeting using the button below:
+            </p>
+
+            <!-- Join Button -->
+            <div style="
+              text-align: center;
+              margin: 28px 0;
+            ">
+              <a
+                href="${meetingLink}"
+                style="
+                  display: inline-block;
+                  padding: 13px 28px;
+                  background-color: #2563eb;
+                  color: #ffffff;
+                  text-decoration: none;
+                  border-radius: 7px;
+                  font-size: 15px;
+                  font-weight: bold;
+                "
+              >
+                Join Meeting
+              </a>
+            </div>
+
+            <!-- Meeting Link -->
+            <p style="
+              font-size: 13px;
+              line-height: 1.5;
+              color: #888888;
+              word-break: break-all;
+            ">
+              Meeting Link:<br/>
+
+              <a
+                href="${meetingLink}"
+                style="color: #2563eb;"
+              >
+                ${meetingLink}
+              </a>
+            </p>
+
+            <p style="
+              font-size: 15px;
+              line-height: 1.6;
+              color: #555555;
+            ">
+              Please make sure to be available at the scheduled time.
+            </p>
+
+            <p style="
+              margin-bottom: 0;
+              font-size: 15px;
+              line-height: 1.6;
+            ">
+              Best regards,<br/>
+              <strong>TalkWithKartik</strong>
+            </p>
+
+          </div>
+
+          <!-- Footer -->
+          <div style="
+            padding: 18px;
+            text-align: center;
+            background-color: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+          ">
+            <p style="
+              margin: 0;
+              font-size: 12px;
+              color: #94a3b8;
+            ">
+              This is an automated notification. Please do not reply to this email.
+            </p>
+          </div>
+
+        </div>
+      </body>
+    </html>
+  `;
+};
