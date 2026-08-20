@@ -88,7 +88,6 @@ export const googleAdminCallback = async (req, res) => {
         httpOnly: true,
         secure: isProduction,
         sameSite: isProduction ? "None" : undefined,
-        partitioned: isProduction,
         path: "/",
         maxAge: 24 * 60 * 60 * 1000,
       })
